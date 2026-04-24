@@ -9,8 +9,9 @@ public class Letto {
         this.statoAttuale = stato;
     }
 
+    public boolean isLibero(){ return !this.statoAttuale;}
     public boolean checkStato(boolean statoAttuale){
-        if(statoAttuale == true){
+        if(this.statoAttuale){
             System.out.println("Il letto è occupato");
         } else{
             System.out.println("Il letto è libero");
