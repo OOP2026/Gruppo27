@@ -13,9 +13,7 @@ public class Paziente {
         this.recapito = recapito;
     }
 
-    public String getNome(){
-        return nome;
-    }
+    public String getNome(){ return nome; }
     public void setNome(String nome){
         this.nome = nome;
     }

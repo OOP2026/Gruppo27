@@ -7,9 +7,13 @@ public class Reparto {
     private String nome;
     private List<Stanza> stanze = new ArrayList<>();
 
-    public Reparto(String nomeR){ this.nome = nomeR;}
+    public Reparto(String nomeR) {
+        this.nome = nomeR;
+    }
 
-    public void aggiungiStanza(Stanza stanza){ this.stanze.add(stanza);}
+    public void creaStanza() {
+    System.out.println("Stanza creata");
+}
 
     public Stanza getStanza(int numero){
         for(Stanza stanza : stanze){
@@ -18,14 +22,7 @@ public class Reparto {
         return null;
     }
 
-    public int disponibilitaLetti() {
-        int lettiLiberi = 0;
-        for (Stanza s : stanze) {
-            lettiLiberi += s.getQuantitaLettiLiberi();
-        }
-        System.out.println("Nel reparto " + nome + " sono disponibili " + lettiLiberi + " letti liberi.");
-        return lettiLiberi;
-    }
+    public void disponibilitaLetti() { System.out.println("Letti disponibili:"); }
 
     public int getQuantitaStanze(){ return this.stanze.size();}
 

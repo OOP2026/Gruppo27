@@ -1,7 +1,6 @@
 package model;
 
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 
 public class Ricovero {
     private final String codice;
@@ -18,14 +17,14 @@ public class Ricovero {
     public String getCodice(){
         return codice;
     }
-
     public LocalDateTime getDataInizio(){
         return dataInizio;
     }
 
-    public LocalDateTime dimissionePrevista(){
-        return dimissionePrevista;
+    public void dimissionePrevista(){
+        System.out.println("Dimissione prevista: ");
     }
+
     public void setDimissionePrevista(LocalDateTime dimissionePrevista){
         this.dimissionePrevista = dimissionePrevista;
     }
@@ -35,11 +34,6 @@ public class Ricovero {
     }
     public void setDimissioneEffettiva(LocalDateTime dimissioneEffettiva){
         this.dimissioneEffettiva = dimissioneEffettiva;
-    }
-    public String getDataFineFormattata() {
-        if (dimissioneEffettiva == null) return "Non ancora dimesso";
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
-        return dimissioneEffettiva.format(formatter);
     }
     public Paziente getPaziente(){
         return paziente;

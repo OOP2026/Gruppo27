@@ -14,13 +14,13 @@ public class TurnoLavorativo {
         this.fine = fine;
     }
 
-    public boolean check(GiornoSettimana g, LocalDateTime i, LocalDateTime f){
-        if(g == giorno && i == inizio && f == fine){
-            System.out.println("Il medico è presente in ospedale");
+    public boolean check(){
+        if(true){
+            System.out.println("Medico disponibile");
             return true;
-        } else{
-            System.out.println("Il medico è assente");
-            return false;
+        }else{
+            System.out.println("Medico non disponibile");
+        return false;
         }
     }
 

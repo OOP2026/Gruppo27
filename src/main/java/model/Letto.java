@@ -8,18 +8,15 @@ public class Letto {
         this.codiceInventario = codice;
         this.statoAttuale = stato;
     }
-
-    public boolean isLibero(){ return !this.statoAttuale;}
-    public boolean checkStato(boolean statoAttuale){
-        if(this.statoAttuale){
-            System.out.println("Il letto è occupato");
-        } else{
-            System.out.println("Il letto è libero");
-        }
-        return statoAttuale;
-    }
     public void setStatoAttuale(boolean stato){ this.statoAttuale = stato;}
-
     public String getCodiceInventario(){ return codiceInventario;}
     public void setCodiceInventario(String codice){ this.codiceInventario = codice;}
+
+    public boolean isLibero(){ return !this.statoAttuale;}
+
+    public boolean checkStato(){
+        System.out.println("Check stato");
+        return this.statoAttuale;
+    }
+
 }
