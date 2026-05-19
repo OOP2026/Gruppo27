@@ -1,6 +1,6 @@
 package model;
 
-import java.time.LocalDateTime;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -8,7 +8,7 @@ public class Medico extends Utente {
     private String nome;
     private String cognome;
     private boolean disponibile;
-    private List<LocalDateTime> turni = new ArrayList<>();
+    private List<TurnoLavorativo> turni = new ArrayList<>();
 
     public Medico(String login, String password, String nome, String cognome){
         super(login, password);

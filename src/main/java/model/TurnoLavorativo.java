@@ -3,7 +3,7 @@ package model;
 import java.time.LocalDateTime;
 
 public class TurnoLavorativo {
-    public enum GiornoSettimana{Lunedì, Martedì, Mercoledì, Giovedì, Venerdì};
+    public enum GiornoSettimana{LUNEDI, MARTEDI,MERCOLEDI, GIOVEDI, VENERDI, SABATO, DOMENICA};
     private GiornoSettimana giorno;
     private LocalDateTime inizio;
     private LocalDateTime fine;
@@ -15,13 +15,8 @@ public class TurnoLavorativo {
     }
 
     public boolean check(){
-        if(true){
-            System.out.println("Medico disponibile");
-            return true;
-        }else{
-            System.out.println("Medico non disponibile");
-        return false;
-        }
+        LocalDateTime ora = LocalDateTime.now();
+        return !ora.isBefore(inizio) && !ora.isAfter(fine);
     }
 
     public GiornoSettimana getGiorno(){ return giorno;}

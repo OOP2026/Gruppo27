@@ -21,7 +21,7 @@ public class Ricovero {
         return dataInizio;
     }
 
-    public void dimissionePrevista(){
+    public void stampaDimissionePrevista(){
         System.out.println("Dimissione prevista: ");
     }
 
