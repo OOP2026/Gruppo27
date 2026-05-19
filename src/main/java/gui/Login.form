@@ -8,10 +8,11 @@
     <properties/>
     <border type="none"/>
     <children>
-      <grid id="7cae7" binding="panel2" custom-create="true" layout-manager="GridLayoutManager" row-count="8" column-count="4" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
-        <margin top="0" left="0" bottom="0" right="0"/>
+      <!-- Panel2 con le tue dimensioni originali 750x650 e Custom Create attivo -->
+      <grid id="7cae7" binding="panel2" custom-create="true" layout-manager="GridLayoutManager" row-count="7" column-count="2" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
+        <margin top="0" left="0" bottom="0" right="40"/> <!-- Margine a destra per non far attaccare i componenti al bordo dell'immagine -->
         <constraints>
-          <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="0" fill="3" indent="1" use-parent-layout="false">
+          <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="0" fill="3" indent="0" use-parent-layout="false">
             <minimum-size width="750" height="650"/>
             <preferred-size width="750" height="650"/>
             <maximum-size width="750" height="650"/>
@@ -20,9 +21,56 @@
         <properties/>
         <border type="none"/>
         <children>
+          <!-- Spazio vuoto a sinistra che spinge tutto il blocco di login verso destra -->
+          <hspacer id="left_spacer">
+            <constraints>
+              <grid row="1" column="0" row-span="5" col-span="1" vsize-policy="1" hsize-policy="6" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
+            </constraints>
+          </hspacer>
+
+          <!-- Spazio superiore per centrare verticalmente i componenti a destra -->
+          <vspacer id="3ea74">
+            <constraints>
+              <grid row="0" column="1" row-span="1" col-span="1" vsize-policy="6" hsize-policy="1" anchor="0" fill="2" indent="0" use-parent-layout="false"/>
+            </constraints>
+          </vspacer>
+          
+          <!-- Label Nome Utente (Allineata a destra, sopra il campo) -->
+          <component id="34ba3" class="javax.swing.JLabel">
+            <constraints>
+              <grid row="1" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="4" fill="0" indent="0" use-parent-layout="false"/>
+            </constraints>
+            <properties>
+              <text value="Nome Utente"/>
+            </properties>
+          </component>
+          
+          <!-- Campo Username (Larghezza 300 come nel tuo file originale) -->
+          <component id="afe6e" class="javax.swing.JTextField" binding="textField1" default-binding="true">
+            <constraints>
+              <grid row="2" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="6" anchor="4" fill="0" indent="0" use-parent-layout="false">
+                <preferred-size width="300" height="-1"/>
+              </grid>
+            </constraints>
+            <properties>
+              <background color="-1"/>
+            </properties>
+          </component>
+          
+          <!-- Label Password (Allineata a destra) -->
+          <component id="9b46c" class="javax.swing.JLabel">
+            <constraints>
+              <grid row="3" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="4" fill="0" indent="0" use-parent-layout="false"/>
+            </constraints>
+            <properties>
+              <text value="Password"/>
+            </properties>
+          </component>
+          
+          <!-- Campo Password (Larghezza 300) -->
           <component id="74505" class="javax.swing.JPasswordField" binding="passwordField1" default-binding="true">
             <constraints>
-              <grid row="5" column="0" row-span="1" col-span="3" vsize-policy="0" hsize-policy="6" anchor="4" fill="0" indent="0" use-parent-layout="false">
+              <grid row="4" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="6" anchor="4" fill="0" indent="0" use-parent-layout="false">
                 <preferred-size width="300" height="-1"/>
               </grid>
             </constraints>
@@ -31,59 +79,21 @@
               <text value=""/>
             </properties>
           </component>
-          <component id="afe6e" class="javax.swing.JTextField" binding="textField1" default-binding="true">
-            <constraints>
-              <grid row="2" column="0" row-span="1" col-span="3" vsize-policy="0" hsize-policy="6" anchor="4" fill="0" indent="0" use-parent-layout="false">
-                <preferred-size width="300" height="-1"/>
-              </grid>
-            </constraints>
-            <properties>
-              <background color="-1"/>
-            </properties>
-          </component>
-          <hspacer id="b7f2d">
-            <constraints>
-              <grid row="3" column="3" row-span="1" col-span="1" vsize-policy="1" hsize-policy="0" anchor="0" fill="1" indent="0" use-parent-layout="false">
-                <minimum-size width="40" height="40"/>
-                <preferred-size width="40" height="40"/>
-                <maximum-size width="40" height="40"/>
-              </grid>
-            </constraints>
-          </hspacer>
-          <component id="9b46c" class="javax.swing.JLabel">
-            <constraints>
-              <grid row="4" column="2" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="4" fill="0" indent="0" use-parent-layout="false"/>
-            </constraints>
-            <properties>
-              <text value="Password"/>
-            </properties>
-          </component>
-          <component id="34ba3" class="javax.swing.JLabel">
-            <constraints>
-              <grid row="1" column="2" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="4" fill="0" indent="0" use-parent-layout="false"/>
-            </constraints>
-            <properties>
-              <text value="Nome Utente"/>
-            </properties>
-          </component>
+          
+          <!-- Pulsante Login (Allineato a destra sotto i campi) -->
           <component id="6722b" class="javax.swing.JButton" binding="loginButton" default-binding="true">
             <constraints>
-              <grid row="6" column="2" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="4" fill="0" indent="0" use-parent-layout="false"/>
+              <grid row="5" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="4" fill="0" indent="0" use-parent-layout="false"/>
             </constraints>
             <properties>
-              <horizontalAlignment value="0"/>
-              <horizontalTextPosition value="0"/>
               <text value="Login"/>
             </properties>
           </component>
+          
+          <!-- Spazio inferiore per il bilanciamento verticale -->
           <vspacer id="aa72">
             <constraints>
-              <grid row="7" column="2" row-span="1" col-span="1" vsize-policy="6" hsize-policy="1" anchor="0" fill="2" indent="0" use-parent-layout="false"/>
-            </constraints>
-          </vspacer>
-          <vspacer id="3ea74">
-            <constraints>
-              <grid row="0" column="2" row-span="1" col-span="1" vsize-policy="6" hsize-policy="1" anchor="0" fill="2" indent="0" use-parent-layout="false"/>
+              <grid row="6" column="1" row-span="1" col-span="1" vsize-policy="6" hsize-policy="1" anchor="0" fill="2" indent="0" use-parent-layout="false"/>
             </constraints>
           </vspacer>
         </children>
