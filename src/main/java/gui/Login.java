@@ -4,11 +4,11 @@ import javax.swing.*;
 
 public class Login {
     // Lasciamo i componenti privati per incapsulamento
-    private JPanel panel1;
+    private JPanel panelLogin;
     private JPasswordField passwordField1;
     private JTextField textField1;
     private JButton loginButton;
-    private JPanel panel2;
+    private JPanel panel1;
 
     public Login() {
         //logica gestita dal controller, vuoto intenzionalmente
@@ -16,8 +16,8 @@ public class Login {
     }
 
 
-    public JPanel getPanel1() {
-        return panel1;
+    public JPanel getPanelLogin() {
+        return panelLogin;
     }
 
     public String getUsername() {
@@ -34,6 +34,6 @@ public class Login {
 
 
     private void createUIComponents() {
-        panel2 = new PanelImmagine("/logoFMAB.png");
+        panel1 = new PanelImmagine("/logoFMAB.png");
     }
 }
