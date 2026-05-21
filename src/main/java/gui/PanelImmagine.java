@@ -5,7 +5,7 @@ import java.awt.*;
 import java.net.URL;
 
 public class PanelImmagine extends JPanel {
-    private Image immagine;
+    private transient Image immagine;
 
     public PanelImmagine(String percorsoRisorsa) {
 

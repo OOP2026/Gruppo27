@@ -9,7 +9,16 @@ public class InterfacciaAmministratore {
     private JScrollBar scrollBar2;
     private JScrollBar scrollBar3;
     private JScrollBar scrollBar4;
+
+    public InterfacciaAmministratore() {
+        //usato dal controller
+    }
+
+    public JPanel getPanelAmministratore() {
+        return panelAmministratore;
+    }
 }
+
 //ToDo Schermata disponibità letti
 //ToDo Schermata Anagrafica Pazienti
 //ToDo Schermata assegnazione paziente a letto
