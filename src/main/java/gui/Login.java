@@ -15,7 +15,6 @@ public class Login {
         //commento per togliere errore sonarqube
     }
 
-
     public JPanel getPanelLogin() {
         return panelLogin;
     }
@@ -31,7 +30,6 @@ public class Login {
     public JButton getLoginButton() {
         return loginButton;
     }
-
 
     private void createUIComponents() {
         panel1 = new PanelImmagine("/logoFMAB.png");

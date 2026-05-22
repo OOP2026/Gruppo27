@@ -12,11 +12,15 @@ public class Letto {
     public String getCodiceInventario(){ return codiceInventario;}
     public void setCodiceInventario(String codice){ this.codiceInventario = codice;}
 
-    public boolean isLibero(){ return !this.statoAttuale;}
+    public boolean isLibero(){ return this.statoAttuale;}
 
     public boolean checkStato(){
         System.out.println("Check stato");
         return this.statoAttuale;
+    }
+    @Override
+    public String toString() {
+        return codiceInventario;
     }
 
 }

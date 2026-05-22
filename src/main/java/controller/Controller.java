@@ -55,7 +55,6 @@ public class Controller {
 		frame.setExtendedState(Frame.MAXIMIZED_BOTH);
 		frame.setLocationRelativeTo(null);
 		frame.setVisible(true);
-
 	}
 
 	private void apriAmministratore(Amministratore a) {

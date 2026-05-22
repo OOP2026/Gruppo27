@@ -10,5 +10,6 @@ public class MedicoController {
     public MedicoController(InterfacciaMedico view, Medico model) {
         this.view = view;
         this.model = model;
+        this.view.setBenvenuto("Benvenuto Dott. " + model.getCognome());
     }
 }
