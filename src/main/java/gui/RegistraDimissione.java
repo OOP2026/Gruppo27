@@ -14,13 +14,16 @@ public class RegistraDimissione extends JDialog {
     private JButton salvaButton;
     private JButton annullaButton;
     private JPanel DataPrevista;
-    private boolean confermato;
+    private boolean confermato = false;
 
-    public RegistraDimissione(JFrame parent, Date dataPrevistaRicovero) {
+    public RegistraDimissione(JFrame parent, Date dataPrevistaRicovero, String ssnPaziente) {
         super(parent, "Registrazione Dimissione Paziente", true);
         setContentPane(mainPanel);
         setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
-
+        if (ssnField != null) {
+            ssnField.setText(ssnPaziente);
+            ssnField.setEditable(false);
+        }
         dimissioneEffetivaChooser = new JDateChooser();
         dimissioneEffetivaChooser.setDateFormatString("dd/MM/yyyy");
         dimissioneEffetivaChooser.setDate(new Date());
@@ -32,16 +35,37 @@ public class RegistraDimissione extends JDialog {
         setResizable(false);
     }
 
-    public String getSsn() { return ssnField.getText(); }
-    public String getEsito() { return esitoTextArea.getText(); }
-    public String getTerapia() { return terapiaTextArea.getText(); }
-    public JDateChooser getDimissioneEffettiva() { return dimissioneEffetivaChooser; }
-    public JButton getSalvaButton() { return salvaButton; }
-    public JButton getAnnullaButton() { return annullaButton; }
-    public boolean isConfermato(){return confermato;}
-    public void setConfermato(boolean confermato){this.confermato=confermato;}
+    public String getSsn() {
+        return ssnField.getText();
+    }
+    public String getEsito() {
+        return esitoTextArea.getText();
+    }
 
-    //prova dimissione poi si cancella
+    public String getTerapia() {
+        return terapiaTextArea.getText();
+    }
+
+    public JDateChooser getDimissioneEffettiva() {
+        return dimissioneEffetivaChooser;
+    }
+
+    public JButton getSalvaButton() {
+        return salvaButton;
+    }
+
+    public JButton getAnnullaButton() {
+        return annullaButton;
+    }
+
+    public boolean isConfermato() {
+        return confermato;
+    }
+
+    public void setConfermato(boolean confermato) {
+        this.confermato = confermato;
+    }
+    /*prova dimissione poi si cancella
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> {
             JFrame frame = new JFrame();
@@ -63,5 +87,5 @@ public class RegistraDimissione extends JDialog {
             }
             System.exit(0);
         });
-    }
+    }*/
 }

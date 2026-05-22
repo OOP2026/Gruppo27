@@ -49,11 +49,14 @@
                         </constraints>
                         <properties/>
                       </component>
-                      <hspacer id="742a9">
+                      <component id="48673" class="javax.swing.JTable" binding="anagraficaTable">
                         <constraints>
-                          <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="1" hsize-policy="6" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
+                          <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="6" hsize-policy="6" anchor="0" fill="3" indent="0" use-parent-layout="false">
+                            <preferred-size width="150" height="50"/>
+                          </grid>
                         </constraints>
-                      </hspacer>
+                        <properties/>
+                      </component>
                     </children>
                   </grid>
                 </children>
@@ -77,11 +80,14 @@
                         </constraints>
                         <properties/>
                       </component>
-                      <hspacer id="fa430">
+                      <component id="7b067" class="javax.swing.JTable" binding="lettiTable">
                         <constraints>
-                          <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="1" hsize-policy="6" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
+                          <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="6" hsize-policy="6" anchor="0" fill="3" indent="0" use-parent-layout="false">
+                            <preferred-size width="150" height="50"/>
+                          </grid>
                         </constraints>
-                      </hspacer>
+                        <properties/>
+                      </component>
                     </children>
                   </grid>
                 </children>
@@ -105,11 +111,14 @@
                         </constraints>
                         <properties/>
                       </component>
-                      <hspacer id="b3766">
+                      <component id="80a8d" class="javax.swing.JTable" binding="ricoveroTable">
                         <constraints>
-                          <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="1" hsize-policy="6" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
+                          <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="6" hsize-policy="6" anchor="0" fill="3" indent="0" use-parent-layout="false">
+                            <preferred-size width="150" height="50"/>
+                          </grid>
                         </constraints>
-                      </hspacer>
+                        <properties/>
+                      </component>
                     </children>
                   </grid>
                 </children>
@@ -133,11 +142,14 @@
                         </constraints>
                         <properties/>
                       </component>
-                      <hspacer id="8769b">
+                      <component id="542c1" class="javax.swing.JTable" binding="dimissioniTable">
                         <constraints>
-                          <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="1" hsize-policy="6" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
+                          <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="6" hsize-policy="6" anchor="0" fill="3" indent="0" use-parent-layout="false">
+                            <preferred-size width="150" height="50"/>
+                          </grid>
                         </constraints>
-                      </hspacer>
+                        <properties/>
+                      </component>
                     </children>
                   </grid>
                 </children>

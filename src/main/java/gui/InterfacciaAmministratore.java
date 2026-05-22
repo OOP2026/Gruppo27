@@ -12,6 +12,10 @@ public class InterfacciaAmministratore {
     private JButton button1;
     private JButton registraDimissioneButton;
     private JButton registraRicoveriButton;
+    private JTable ricoveroTable;
+    private JTable dimissioniTable;
+    private JTable anagraficaTable;
+    private JTable lettiTable;
 
     public InterfacciaAmministratore() {
         //usato dal controller
@@ -22,6 +26,10 @@ public class InterfacciaAmministratore {
     }
     public JButton getRegistraRicoveriButton() { return registraRicoveriButton;}
     public JButton getRegistraDimissioneButton() { return registraDimissioneButton;}
+    public JTable getRicoveriTable(){ return ricoveroTable;}
+    public JTable getDimissioniTable(){ return dimissioniTable;}
+    public JTable getAnagraficaTable(){ return anagraficaTable;}
+    public JTable getLettiTable(){ return lettiTable;}
 }
 //ToDo Schermata disponibità letti
 //ToDo Schermata Anagrafica Pazienti
