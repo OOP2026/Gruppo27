@@ -21,10 +21,6 @@ public class Ricovero {
         return dataInizio;
     }
 
-    public void stampaDimissionePrevista(){
-        System.out.println("Dimissione prevista: ");
-    }
-
     public void setDimissionePrevista(LocalDateTime dimissionePrevista){
         this.dimissionePrevista = dimissionePrevista;
     }

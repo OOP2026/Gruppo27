@@ -30,6 +30,9 @@ public class InterfacciaAmministratore {
     public JTable getDimissioniTable(){ return dimissioniTable;}
     public JTable getAnagraficaTable(){ return anagraficaTable;}
     public JTable getLettiTable(){ return lettiTable;}
+    public JTabbedPane getTabbedPane() {
+        return tabbedPane1;
+    }
 }
 //ToDo Schermata disponibità letti
 //ToDo Schermata Anagrafica Pazienti

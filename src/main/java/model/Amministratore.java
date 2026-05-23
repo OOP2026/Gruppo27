@@ -6,16 +6,16 @@ public class Amministratore extends Utente {
         super(login, password);
     }
 
-    public void registraPaziente() {
-        System.out.println("Registrando Paziente");
+    public boolean registraPaziente(Paziente p) {
+        return true; // Logica di inserimento
     }
 
-    public void gestioneAnagraficaPaziente() {
-        System.out.println("Modifica anagrafica Paziente");
+    public boolean modificaAnagraficaPaziente(Paziente p) {
+        return true;
     }
 
-    public void dimissionePaziente(){
-        System.out.println("Dimissione Paziente");
+    public boolean dimettiPaziente(Paziente p){
+        return true;
     }
 
     }

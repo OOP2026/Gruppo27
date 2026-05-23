@@ -11,6 +11,7 @@ import java.awt.*;
 
 public class Controller {
 	private Login view;
+	private JFrame mainFrame;
 
 	private Utente autentica(String u, String p) {
 		Medico m = new Medico("medico", "pass", "Francesco", "Giordano");
@@ -20,54 +21,43 @@ public class Controller {
 		return null;
 	}
 
-	public Controller(Login view) {
+	public Controller(Login view, JFrame mainFrame) {
 		this.view = view;
+		this.mainFrame = mainFrame;
 
 		this.view.getLoginButton().addActionListener(e -> {
 			String u = view.getUsername();
 			String p = view.getPassword();
-
 			Utente utente = autentica(u, p);
 
 			if (utente != null) {
-
-				SwingUtilities.getWindowAncestor(view.getPanelLogin()).dispose();
-
 				if (utente instanceof Medico) {
 					apriMedico((Medico) utente);
 				} else if (utente instanceof Amministratore) {
 					apriAmministratore((Amministratore) utente);
 				}
 			} else {
-				JOptionPane.showMessageDialog(view.getPanelLogin(), "Credenziali errate.");
+				JOptionPane.showMessageDialog(mainFrame, "Credenziali errate.", "Errore Login", JOptionPane.ERROR_MESSAGE);
 			}
 		});
 	}
 
 	private void apriMedico(Medico m) {
-		JFrame frame = new JFrame("Dashboard Medico");
 		InterfacciaMedico gui = new InterfacciaMedico();
 		new MedicoController(gui, m);
-
-		frame.setContentPane(gui.getPanelMedico());
-		frame.pack();
-		frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
-		frame.setExtendedState(Frame.MAXIMIZED_BOTH);
-		frame.setLocationRelativeTo(null);
-		frame.setVisible(true);
+		cambiaSchermata(gui.getPanelMedico(), "Dashboard Medico");
 	}
 
 	private void apriAmministratore(Amministratore a) {
-		JFrame frame = new JFrame("Dashboard Amministratore");
-		InterfacciaAmministratore gui2 = new InterfacciaAmministratore();
-		new AdminController(gui2, a);
-
-		frame.setContentPane(gui2.getPanelAmministratore());
-		frame.pack();
-		frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
-		frame.setExtendedState(Frame.MAXIMIZED_BOTH);
-		frame.setLocationRelativeTo(null);
-		frame.setVisible(true);
-
+		InterfacciaAmministratore gui = new InterfacciaAmministratore();
+		new AdminController(gui, a, mainFrame);
+		cambiaSchermata(gui.getPanelAmministratore(), "Dashboard Amministratore");
+	}
+	private void cambiaSchermata(JPanel nuovoPanel, String titolo) {
+		mainFrame.setTitle(titolo);
+		mainFrame.setContentPane(nuovoPanel);
+		mainFrame.setExtendedState(JFrame.MAXIMIZED_BOTH);
+		mainFrame.revalidate();
+		mainFrame.repaint();
 	}
 }

@@ -14,19 +14,15 @@ public class Medico extends Utente {
         super(login, password);
         this.nome = nome;
         this.cognome = cognome;
-    }
-    public void registraPrestazione(){
-        System.out.println("Prestazione registrato");
-    }
-    public void visualizzaTurni(){
-        System.out.println("Turni Dottore "+ cognome);
-    }
-    public void aggiungiTurno(){
-        System.out.println("Turno aggiunto");
-    }
 
-    public void rimuoviTurno(){
-        System.out.println("Turno rimosso");
+    }public boolean registraPrestazione(PrestazioneMedica p){
+        return true;
+    }
+    public void aggiungiTurno(TurnoLavorativo t){
+        this.turni.add(t);
+    }
+    public void rimuoviTurno(TurnoLavorativo t){
+        this.turni.remove(t);
     }
 
     public String getNome(){

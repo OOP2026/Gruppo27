@@ -1,0 +1,52 @@
+package gui;
+
+import javax.swing.*;
+import javax.swing.table.DefaultTableModel;
+import model.Reparto;
+
+public class GestioneAnagraficaPazienti {
+    private JPanel mainPanel;
+    private JTextField txtCf;
+    private JTextField txtNome;
+    private JTextField txtCognome;
+    private JTextField txtRecapito;
+    private JComboBox<Reparto> cmbReparto; // Aggiunto per la suddivisione
+    private JButton btnAggiungi;
+    private JButton btnModifica;
+    private JButton btnElimina;
+    private JButton btnPulisci;
+    private JTable tablePazienti;
+    private DefaultTableModel tableModel;
+
+    public GestioneAnagraficaPazienti() {
+        if (tablePazienti != null) {
+            creaTabella();
+        }
+    }
+
+    private void creaTabella() {
+        // Aggiunta la colonna Reparto per la visualizzazione suddivisa
+        String[] colonne = {"SSN", "Nome", "Cognome", "Recapito", "Reparto"};
+        tableModel = new DefaultTableModel(colonne, 0) {
+            @Override
+            public boolean isCellEditable(int row, int column) {
+                return false;
+            }
+        };
+        tablePazienti.setModel(tableModel);
+    }
+
+    // Getter completi per il controller
+    public JPanel getMainPanel() { return mainPanel; }
+    public JTextField getTxtCf() { return txtCf; }
+    public JTextField getTxtNome() { return txtNome; }
+    public JTextField getTxtCognome() { return txtCognome; }
+    public JTextField getTxtRecapito() { return txtRecapito; }
+    public JComboBox<Reparto> getCmbReparto() { return cmbReparto; }
+    public JButton getBtnAggiungi() { return btnAggiungi; }
+    public JButton getBtnModifica() { return btnModifica; }
+    public JButton getBtnElimina() { return btnElimina; }
+    public JButton getBtnPulisci() { return btnPulisci; }
+    public JTable getTablePazienti() { return tablePazienti; }
+    public DefaultTableModel getTableModel() { return tableModel; }
+}
