@@ -212,7 +212,7 @@ public class AdminController {
             view.getRicoveriTable().setModel(tableModelRicoveri);
         }
 
-        String[] colonne1 = {"SSN Paziente", "Data Dimissione Prevista"};
+        String[] colonne1 = {"SSN Paziente","Nome","Cognome","Reparto","Letto", "Medico","Data Dimissione Prevista"};
         tableModelDimissioni = new DefaultTableModel(colonne1, 0){
             @Override
             public boolean isCellEditable(int row, int column) {return false;}
@@ -228,16 +228,47 @@ public class AdminController {
 
         java.text.SimpleDateFormat formatoData = new java.text.SimpleDateFormat("dd/MM/yyyy");
 
-        for (BackupRicoveroMemoria r : elencoRicoveri) {
-            String dataRicoveroStr = r.dataRicovero != null ? formatoData.format(r.dataRicovero) : "-";
-            String dataDimissioneStr = r.dataDimissionePrevista != null ? formatoData.format(r.dataDimissionePrevista) : "-";
-            String infoLetto = r.lettoAssegnato != null ? r.lettoAssegnato.toString() : "Nessuno";
+        for (BackupRicoveroMemoria ricovero : elencoRicoveri) {
+            String nome = "N/D";
+            String cognome = "N/D";
 
-            Object[] rigaRicovero = { r.ssn, dataRicoveroStr, dataDimissioneStr, infoLetto };
-            tableModelRicoveri.addRow(rigaRicovero);
+            if (anagraficaView != null && anagraficaView.getTableModel() != null) {
+                for (int i = 0; i < anagraficaView.getTableModel().getRowCount(); i++) {
+                    String ssnTabella = anagraficaView.getTableModel().getValueAt(i, 0).toString();
+                    if (ssnTabella.equalsIgnoreCase(ricovero.ssn)) {
+                        nome = (String) anagraficaView.getTableModel().getValueAt(i, 1);
+                        cognome = (String) anagraficaView.getTableModel().getValueAt(i, 2);
+                        break;
+                    }
+                }
+            }
 
-            Object[] rigaDimissione = { r.ssn, dataDimissioneStr };
-            tableModelDimissioni.addRow(rigaDimissione);
+            String dataRicoveroStr = ricovero.dataRicovero != null ? formatoData.format(ricovero.dataRicovero) : "-";
+            String dataDimissioneStr = ricovero.dataDimissionePrevista != null ? formatoData.format(ricovero.dataDimissionePrevista) : "-";
+            String infoLetto = (ricovero.lettoAssegnato != null) ? ricovero.lettoAssegnato.getCodiceInventario() : "-";
+
+            String nomeReparto = "Non assegnato";
+            if (ricovero.lettoAssegnato != null && listaReparti != null) {
+
+                for (model.Reparto reparto : listaReparti) {
+                    for (model.Stanza s : reparto.getStanze()) {
+                        for (model.Letto l : s.getLetti()) {
+                            if (l.getCodiceInventario().equals(infoLetto)) {
+                                nomeReparto = reparto.getNome();
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+
+            String medico = "Da assegnare";
+
+            Object[] riga = { ricovero.ssn, nome, cognome, nomeReparto, infoLetto, medico, dataDimissioneStr };
+
+            if (tableModelDimissioni != null) {
+                tableModelDimissioni.addRow(riga);
+            }
         }
     }
 
@@ -366,7 +397,7 @@ public class AdminController {
             } else {
 
                 String dataCercata = formatoData.format(dataScelta);
-                sorterDimissioni.setRowFilter(RowFilter.regexFilter("^" + dataCercata + "$", 1));
+                sorterDimissioni.setRowFilter(RowFilter.regexFilter("^" + dataCercata + "$", 6));
             }
         });
 
@@ -378,7 +409,7 @@ public class AdminController {
 
             // Applica il filtro
             String dataOggiStr = formatoData.format(oggi);
-            sorterDimissioni.setRowFilter(RowFilter.regexFilter("^" + dataOggiStr + "$", 1));
+            sorterDimissioni.setRowFilter(RowFilter.regexFilter("^" + dataOggiStr + "$", 6));
         });
 
 
