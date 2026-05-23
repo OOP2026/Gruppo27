@@ -21,9 +21,10 @@ public class InterfacciaAmministratore {
     private JButton btnFiltraData;
     private JButton btnFiltraOggi;
     private JButton btnResetFiltro;
+    private JPanel panel1;
+    private JPanel PannelloButtons;
 
     public InterfacciaAmministratore() {
-
         dateChooserFiltro = new JDateChooser();
         dateChooserFiltro.setDateFormatString("dd/MM/yyyy");
         dateChooserFiltro.setMinSelectableDate(new java.util.Date());
@@ -33,40 +34,32 @@ public class InterfacciaAmministratore {
             datePanelFiltro.add(dateChooserFiltro, BorderLayout.CENTER);
         }
     }
-
+    private void createUIComponents() {panel1 = new PanelImmagine("/logoFMAB.png");}
 
     public JPanel getPanelAmministratore() {
         return panelAmministratore;
     }
-
     public JButton getRegistraRicoveriButton() {
         return registraRicoveriButton;
     }
-
     public JButton getRegistraDimissioneButton() {
         return registraDimissioneButton;
     }
-
     public JTable getRicoveriTable() {
         return ricoveroTable;
     }
-
     public JTable getDimissioniTable() {
         return dimissioniTable;
     }
-
     public JTable getAnagraficaTable() {
         return anagraficaTable;
     }
-
     public JTable getLettiTable() {
         return lettiTable;
     }
-
     public JTabbedPane getTabbedPane() {
         return tabbedPane1;
     }
-
     public JButton getLogoutButton() {
         return logoutButton;
     }

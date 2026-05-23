@@ -350,18 +350,15 @@ public class AdminController {
     private void inizializzaFiltriDimissioni() {
         if (view.getDimissioniTable() == null || view.getDateChooserFiltro() == null) return;
 
-
         TableRowSorter<DefaultTableModel> sorterDimissioni = new TableRowSorter<>(tableModelDimissioni);
         view.getDimissioniTable().setRowSorter(sorterDimissioni);
 
         java.text.SimpleDateFormat formatoData = new java.text.SimpleDateFormat("dd/MM/yyyy");
 
-
         view.getBtnFiltraData().addActionListener(e -> {
             Date dataScelta = view.getDateChooserFiltro().getDate();
 
             if (dataScelta == null) {
-
                 sorterDimissioni.setRowFilter(null);
             } else {
 
@@ -370,17 +367,13 @@ public class AdminController {
             }
         });
 
-
         view.getBtnFiltraOggi().addActionListener(e -> {
             Date oggi = new Date();
-
             view.getDateChooserFiltro().setDate(oggi);
-
             // Applica il filtro
             String dataOggiStr = formatoData.format(oggi);
             sorterDimissioni.setRowFilter(RowFilter.regexFilter("^" + dataOggiStr + "$", 1));
         });
-
 
         view.getBtnResetFiltro().addActionListener(e -> {
             view.getDateChooserFiltro().setDate(null);
@@ -477,7 +470,7 @@ public class AdminController {
                 if (lettoScelto != null) {
                     lettoScelto.setStatoAttuale(false);
                 }
-                // Creiamo l'oggetto temporaneo usando i getter della tua classe RegistraRicovero
+                // Creiamo l'oggetto temporaneo usando i getter della classe RegistraRicovero
                 BackupRicoveroMemoria nuovoRicovero = new BackupRicoveroMemoria(
                         dialogRicovero.getSSN().trim(),
                         dialogRicovero.getDateChooserRicovero().getDate(),

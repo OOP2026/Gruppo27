@@ -1,7 +1,10 @@
 package controller;
 
 import gui.InterfacciaMedico;
+
 import model.Medico;
+import model.TurnoLavorativo;
+import model.PrestazioneMedica;
 
 public class MedicoController {
     private InterfacciaMedico view;

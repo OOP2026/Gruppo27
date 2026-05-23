@@ -13,24 +13,22 @@ public class InterfacciaMedico {
     private JLabel JLBenvenuto;
     private JPanel ContenutoGiornaliera;
     private JPanel ContenutoSettimanale;
+    private JTable AgendaGiornaliera;
+    private JTable AgendaSettimanale;
 
     public InterfacciaMedico() {
-        //usato dal controller, ma aggiungo forzatamente un BoxLayout
-        /*if (ContenutoGiornaliera != null) {
-            ContenutoGiornaliera.setLayout(new BoxLayout(ContenutoGiornaliera, BoxLayout.Y_AXIS));
-        }
-        if (ContenutoSettimanale != null) {
-            ContenutoSettimanale.setLayout(new BoxLayout(ContenutoSettimanale, BoxLayout.Y_AXIS));
-        }*/
+        //usato dal controller
     }
-
-    public JPanel getPanelMedico() {return panelMedico;}
 
     public void setBenvenuto(String cognome){
         if (JLBenvenuto != null) {
             JLBenvenuto.setText(cognome); //Il cognome appare dinamicamente nella GUI
         }
     }
+
+    public JPanel getPanelMedico() {return panelMedico;}
+    public JTable getAgendaSettimanale(){ return AgendaSettimanale;}
+    public JTable getAgendaGiornaliera(){ return AgendaGiornaliera;}
 }
 //ToDo Aggiungere funzione aggiungi e rimuovi prestazione
 //ToDo Rendere le agende a comparsa procedurale
