@@ -1,6 +1,7 @@
 package model;
 
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -36,5 +37,15 @@ public class Medico extends Utente {
     }
     public void setCognome(String cognome){
         this.cognome = cognome;
+    }
+
+    public boolean isPrestazioneValid(LocalDateTime dataPrestazione) {
+        for (TurnoLavorativo turno : this.turni) {
+            if (!dataPrestazione.isBefore(turno.getInizio()) &&
+                    !dataPrestazione.isAfter(turno.getFine())) {
+                return true;
+            }
+        }
+        return false;
     }
 }

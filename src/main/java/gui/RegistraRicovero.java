@@ -95,53 +95,5 @@ public class RegistraRicovero extends JDialog{
     public Reparto getRepartoSelezionato() { return (Reparto) RepartoComboBox.getSelectedItem(); }
     public Letto getLettoSelezionato() { return (Letto) LettoComboBox.getSelectedItem(); }
 
-    // prova registrazione
-    public static void main(String[] args) {
-        List<Reparto> ospedale = new ArrayList<>();
 
-        Reparto cardiologia = new Reparto(1, "Cardiologia");
-
-        Stanza stanza101 = new Stanza(101);
-        stanza101.aggiungiLetto(new Letto("L22", false));
-        stanza101.aggiungiLetto(new Letto("L34", false));
-
-        Stanza stanza102 = new Stanza(102);
-        stanza102.aggiungiLetto(new Letto("L110", true));
-
-        cardiologia.aggiungiStanza(stanza101);
-        cardiologia.aggiungiStanza(stanza102);
-
-        Reparto chirurgia = new Reparto(2, "Chirurgia");
-        Stanza stanza201 = new Stanza(201);
-        stanza201.aggiungiLetto(new Letto("L1", true));
-        stanza201.aggiungiLetto(new Letto("L2", true));
-        stanza201.aggiungiLetto(new Letto("L3", true));
-
-        chirurgia.aggiungiStanza(stanza201);
-
-        ospedale.add(cardiologia);
-        ospedale.add(chirurgia);
-        SwingUtilities.invokeLater(() -> {
-            JFrame frame = new JFrame();
-            RegistraRicovero dialog = new RegistraRicovero(frame, ospedale);
-
-            dialog.getAnnullaButton().addActionListener(e -> dialog.dispose());
-            dialog.getSalvaButton().addActionListener(e -> {
-                dialog.setConfermato(true);
-                dialog.dispose();
-            });
-
-            dialog.setVisible(true);
-
-            // Log di controllo post-chiusura
-            if (dialog.isConfermato()) {
-                System.out.println("Salvato! SSN inserito: " + dialog.getSSN());
-                System.out.println("Data Ricovero: " + dialog.getDateChooserRicovero().getDate());
-            } else {
-                System.out.println("Operazione annullata.");
-            }
-
-            System.exit(0);
-        });
-    }
 }

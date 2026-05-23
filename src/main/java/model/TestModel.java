@@ -7,7 +7,7 @@ import javax.swing.*;
 public class TestModel {
 	public static void main(String[] args) {
 		SwingUtilities.invokeLater(() -> {
-			JFrame mainFrame = new JFrame("Gestione Ospedaliera");
+			JFrame mainFrame = new JFrame("Login");
 			mainFrame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
 			mainFrame.setResizable(false);
 

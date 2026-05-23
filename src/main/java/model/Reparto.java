@@ -16,7 +16,6 @@ public class Reparto {
 
     public void aggiungiStanza(Stanza stanza) {
         this.stanze.add(stanza);
-        System.out.println("Stanza creata");
 }
 
     /*public Stanza getStanza(int numero){

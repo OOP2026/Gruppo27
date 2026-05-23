@@ -1,15 +1,14 @@
 package gui;
 
+import com.toedter.calendar.JDateChooser;
+
 import javax.swing.*;
+import java.awt.*;
 
 public class InterfacciaAmministratore {
     private JPanel panelAmministratore;
     private JTabbedPane tabbedPane1;
-    private JScrollBar scrollBar1;
-    private JScrollBar scrollBar2;
-    private JScrollBar scrollBar3;
-    private JScrollBar scrollBar4;
-    private JButton button1;
+    private JButton logoutButton;
     private JButton registraDimissioneButton;
     private JButton registraRicoveriButton;
     private JTable ricoveroTable;
@@ -17,23 +16,62 @@ public class InterfacciaAmministratore {
     private JTable anagraficaTable;
     private JTable lettiTable;
 
+    private JDateChooser dateChooserFiltro;
+    private JPanel datePanelFiltro;
+    private JButton btnFiltraData;
+    private JButton btnFiltraOggi;
+    private JButton btnResetFiltro;
+
     public InterfacciaAmministratore() {
-        //usato dal controller
+
+        dateChooserFiltro = new JDateChooser();
+        dateChooserFiltro.setDateFormatString("dd/MM/yyyy");
+        dateChooserFiltro.setMinSelectableDate(new java.util.Date());
+
+        if (datePanelFiltro != null) {
+            datePanelFiltro.setLayout(new BorderLayout());
+            datePanelFiltro.add(dateChooserFiltro, BorderLayout.CENTER);
+        }
     }
+
 
     public JPanel getPanelAmministratore() {
         return panelAmministratore;
     }
-    public JButton getRegistraRicoveriButton() { return registraRicoveriButton;}
-    public JButton getRegistraDimissioneButton() { return registraDimissioneButton;}
-    public JTable getRicoveriTable(){ return ricoveroTable;}
-    public JTable getDimissioniTable(){ return dimissioniTable;}
-    public JTable getAnagraficaTable(){ return anagraficaTable;}
-    public JTable getLettiTable(){ return lettiTable;}
+
+    public JButton getRegistraRicoveriButton() {
+        return registraRicoveriButton;
+    }
+
+    public JButton getRegistraDimissioneButton() {
+        return registraDimissioneButton;
+    }
+
+    public JTable getRicoveriTable() {
+        return ricoveroTable;
+    }
+
+    public JTable getDimissioniTable() {
+        return dimissioniTable;
+    }
+
+    public JTable getAnagraficaTable() {
+        return anagraficaTable;
+    }
+
+    public JTable getLettiTable() {
+        return lettiTable;
+    }
+
     public JTabbedPane getTabbedPane() {
         return tabbedPane1;
     }
+
+    public JButton getLogoutButton() {
+        return logoutButton;
+    }
+    public JDateChooser getDateChooserFiltro() { return dateChooserFiltro; }
+    public JButton getBtnFiltraData() { return btnFiltraData; }
+    public JButton getBtnFiltraOggi() { return btnFiltraOggi; }
+    public JButton getBtnResetFiltro() { return btnResetFiltro; }
 }
-//ToDo Schermata disponibità letti
-//ToDo Schermata Anagrafica Pazienti
-//ToDo Schermata elenco pazienti in scadenza di dimissione con filtro data odierna o data specifica

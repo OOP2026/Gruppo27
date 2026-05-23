@@ -1,197 +1,223 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <form xmlns="http://www.intellij.com/uidesigner/form/" version="1" bind-to-class="gui.InterfacciaAmministratore">
-  <grid id="27dc6" binding="panelAmministratore" layout-manager="GridLayoutManager" row-count="4" column-count="2" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
-    <margin top="0" left="0" bottom="0" right="0"/>
+  <grid id="27dc6" binding="panelAmministratore" layout-manager="GridLayoutManager" row-count="1" column-count="2" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
+    <margin top="15" left="15" bottom="15" right="15"/>
     <constraints>
-      <xy x="20" y="20" width="500" height="400"/>
+      <xy x="20" y="20" width="850" height="600"/>
     </constraints>
     <properties>
       <background color="-2552813"/>
     </properties>
     <border type="none"/>
     <children>
-      <grid id="315c4" layout-manager="GridLayoutManager" row-count="1" column-count="2" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
-        <margin top="0" left="0" bottom="0" right="0"/>
+      <tabbedpane id="315c4" binding="tabbedPane1" default-binding="true">
         <constraints>
-          <grid row="0" column="0" row-span="4" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
+          <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
         </constraints>
-        <properties>
-          <background color="-2552813"/>
-        </properties>
+        <properties/>
         <border type="none"/>
         <children>
-          <tabbedpane id="45d3c" binding="tabbedPane1" default-binding="true">
+          <grid id="tab3" layout-manager="GridLayoutManager" row-count="1" column-count="1" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
+            <margin top="0" left="0" bottom="0" right="0"/>
             <constraints>
-              <grid row="0" column="1" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false">
-                <preferred-size width="1000" height="1000"/>
-                <maximum-size width="1000" height="1000"/>
-              </grid>
+              <tabbedpane title="Anagrafica Pazienti"/>
             </constraints>
             <properties/>
             <border type="none"/>
             <children>
-              <scrollpane id="2bebd">
+              <scrollpane id="scroll3">
                 <constraints>
-                  <tabbedpane title="Anagrafica pazienti"/>
+                  <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="7" hsize-policy="7" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
                 </constraints>
                 <properties/>
                 <border type="none"/>
                 <children>
-                  <grid id="2ffd2" layout-manager="GridLayoutManager" row-count="1" column-count="2" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
-                    <margin top="0" left="0" bottom="0" right="0"/>
+                  <component id="table_anagrafica" class="javax.swing.JTable" binding="anagraficaTable">
                     <constraints/>
                     <properties/>
-                    <border type="none"/>
-                    <children>
-                      <component id="e759" class="javax.swing.JScrollBar" binding="scrollBar1" default-binding="true">
-                        <constraints>
-                          <grid row="0" column="1" row-span="1" col-span="1" vsize-policy="6" hsize-policy="0" anchor="0" fill="2" indent="0" use-parent-layout="false"/>
-                        </constraints>
-                        <properties/>
-                      </component>
-                      <component id="48673" class="javax.swing.JTable" binding="anagraficaTable">
-                        <constraints>
-                          <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="6" hsize-policy="6" anchor="0" fill="3" indent="0" use-parent-layout="false">
-                            <preferred-size width="150" height="50"/>
-                          </grid>
-                        </constraints>
-                        <properties/>
-                      </component>
-                    </children>
-                  </grid>
-                </children>
-              </scrollpane>
-              <scrollpane id="22b5b">
-                <constraints>
-                  <tabbedpane title="Disponibilità letti"/>
-                </constraints>
-                <properties/>
-                <border type="none"/>
-                <children>
-                  <grid id="7870f" layout-manager="GridLayoutManager" row-count="1" column-count="2" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
-                    <margin top="0" left="0" bottom="0" right="0"/>
-                    <constraints/>
-                    <properties/>
-                    <border type="none"/>
-                    <children>
-                      <component id="d0398" class="javax.swing.JScrollBar" binding="scrollBar2" default-binding="true">
-                        <constraints>
-                          <grid row="0" column="1" row-span="1" col-span="1" vsize-policy="6" hsize-policy="0" anchor="0" fill="2" indent="0" use-parent-layout="false"/>
-                        </constraints>
-                        <properties/>
-                      </component>
-                      <component id="7b067" class="javax.swing.JTable" binding="lettiTable">
-                        <constraints>
-                          <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="6" hsize-policy="6" anchor="0" fill="3" indent="0" use-parent-layout="false">
-                            <preferred-size width="150" height="50"/>
-                          </grid>
-                        </constraints>
-                        <properties/>
-                      </component>
-                    </children>
-                  </grid>
-                </children>
-              </scrollpane>
-              <scrollpane id="1fa82">
-                <constraints>
-                  <tabbedpane title="Ricoveri"/>
-                </constraints>
-                <properties/>
-                <border type="none"/>
-                <children>
-                  <grid id="16991" layout-manager="GridLayoutManager" row-count="1" column-count="2" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
-                    <margin top="0" left="0" bottom="0" right="0"/>
-                    <constraints/>
-                    <properties/>
-                    <border type="none"/>
-                    <children>
-                      <component id="2cb12" class="javax.swing.JScrollBar" binding="scrollBar3" default-binding="true">
-                        <constraints>
-                          <grid row="0" column="1" row-span="1" col-span="1" vsize-policy="6" hsize-policy="0" anchor="0" fill="2" indent="0" use-parent-layout="false"/>
-                        </constraints>
-                        <properties/>
-                      </component>
-                      <component id="80a8d" class="javax.swing.JTable" binding="ricoveroTable">
-                        <constraints>
-                          <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="6" hsize-policy="6" anchor="0" fill="3" indent="0" use-parent-layout="false">
-                            <preferred-size width="150" height="50"/>
-                          </grid>
-                        </constraints>
-                        <properties/>
-                      </component>
-                    </children>
-                  </grid>
-                </children>
-              </scrollpane>
-              <scrollpane id="4cad5">
-                <constraints>
-                  <tabbedpane title="Dimissione pazienti"/>
-                </constraints>
-                <properties/>
-                <border type="none"/>
-                <children>
-                  <grid id="dc211" layout-manager="GridLayoutManager" row-count="1" column-count="2" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
-                    <margin top="0" left="0" bottom="0" right="0"/>
-                    <constraints/>
-                    <properties/>
-                    <border type="none"/>
-                    <children>
-                      <component id="8e4ce" class="javax.swing.JScrollBar" binding="scrollBar4" default-binding="true">
-                        <constraints>
-                          <grid row="0" column="1" row-span="1" col-span="1" vsize-policy="6" hsize-policy="0" anchor="0" fill="2" indent="0" use-parent-layout="false"/>
-                        </constraints>
-                        <properties/>
-                      </component>
-                      <component id="542c1" class="javax.swing.JTable" binding="dimissioniTable">
-                        <constraints>
-                          <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="6" hsize-policy="6" anchor="0" fill="3" indent="0" use-parent-layout="false">
-                            <preferred-size width="150" height="50"/>
-                          </grid>
-                        </constraints>
-                        <properties/>
-                      </component>
-                    </children>
-                  </grid>
+                  </component>
                 </children>
               </scrollpane>
             </children>
-          </tabbedpane>
-          <hspacer id="efee7">
+          </grid>
+          <grid id="tab4" layout-manager="GridLayoutManager" row-count="1" column-count="1" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
+            <margin top="0" left="0" bottom="0" right="0"/>
             <constraints>
-              <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="1" hsize-policy="6" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
+              <tabbedpane title="Disponibilità Letti"/>
             </constraints>
-          </hspacer>
+            <properties/>
+            <border type="none"/>
+            <children>
+              <scrollpane id="scroll4">
+                <constraints>
+                  <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="7" hsize-policy="7" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
+                </constraints>
+                <properties/>
+                <border type="none"/>
+                <children>
+                  <component id="table_letti" class="javax.swing.JTable" binding="lettiTable">
+                    <constraints/>
+                    <properties/>
+                  </component>
+                </children>
+              </scrollpane>
+            </children>
+          </grid>
+          <grid id="tab1" layout-manager="GridLayoutManager" row-count="1" column-count="1" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
+            <margin top="0" left="0" bottom="0" right="0"/>
+            <constraints>
+              <tabbedpane title="Ricoveri Registrati"/>
+            </constraints>
+            <properties/>
+            <border type="none"/>
+            <children>
+              <scrollpane id="scroll1">
+                <constraints>
+                  <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="7" hsize-policy="7" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
+                </constraints>
+                <properties/>
+                <border type="none"/>
+                <children>
+                  <component id="table_ricoveri" class="javax.swing.JTable" binding="ricoveroTable">
+                    <constraints/>
+                    <properties/>
+                  </component>
+                </children>
+              </scrollpane>
+            </children>
+          </grid>
+          <grid id="tab2" layout-manager="GridLayoutManager" row-count="2" column-count="1" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
+            <margin top="0" left="0" bottom="0" right="0"/>
+            <constraints>
+              <tabbedpane title="Dimissione Pazienti"/>
+            </constraints>
+            <properties/>
+            <border type="none"/>
+            <children>
+              <grid id="filtriGrid" layout-manager="GridLayoutManager" row-count="1" column-count="6" same-size-horizontally="false" same-size-vertically="false" hgap="5" vgap="-1">
+                <margin top="5" left="5" bottom="5" right="5"/>
+                <constraints>
+                  <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="1" hsize-policy="3" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
+                </constraints>
+                <properties/>
+                <border type="none"/>
+                <children>
+                  <component id="lblFiltro" class="javax.swing.JLabel">
+                    <constraints>
+                      <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+                    </constraints>
+                    <properties>
+                      <text value="Seleziona Scadenza:"/>
+                    </properties>
+                  </component>
+                  <grid id="boxCalendario" binding="datePanelFiltro" layout-manager="BorderLayout" hgap="0" vgap="0">
+                    <constraints>
+                      <grid row="0" column="1" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false">
+                        <preferred-size width="150" height="-1"/>
+                      </grid>
+                    </constraints>
+                    <properties/>
+                    <border type="none"/>
+                    <children/>
+                  </grid>
+                  <component id="btnCercaD" class="javax.swing.JButton" binding="btnFiltraData">
+                    <constraints>
+                      <grid row="0" column="2" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
+                    </constraints>
+                    <properties>
+                      <text value="Cerca Data"/>
+                    </properties>
+                  </component>
+                  <component id="btnOggi" class="javax.swing.JButton" binding="btnFiltraOggi">
+                    <constraints>
+                      <grid row="0" column="3" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
+                    </constraints>
+                    <properties>
+                      <text value="In Scadenza Oggi"/>
+                    </properties>
+                  </component>
+                  <component id="btnMostraTutti" class="javax.swing.JButton" binding="btnResetFiltro">
+                    <constraints>
+                      <grid row="0" column="4" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
+                    </constraints>
+                    <properties>
+                      <text value="Mostra Tutti"/>
+                    </properties>
+                  </component>
+                  <hspacer id="spacerFiltri">
+                    <constraints>
+                      <grid row="0" column="5" row-span="1" col-span="1" vsize-policy="1" hsize-policy="6" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
+                    </constraints>
+                  </hspacer>
+                </children>
+              </grid>
+              <scrollpane id="scroll2">
+                <constraints>
+                  <grid row="1" column="0" row-span="1" col-span="1" vsize-policy="7" hsize-policy="7" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
+                </constraints>
+                <properties/>
+                <border type="none"/>
+                <children>
+                  <component id="table_dimissioni" class="javax.swing.JTable" binding="dimissioniTable">
+                    <constraints/>
+                    <properties/>
+                  </component>
+                </children>
+              </scrollpane>
+            </children>
+          </grid>
+        </children>
+      </tabbedpane>
+      <grid id="buttonsPanel" layout-manager="GridLayoutManager" row-count="5" column-count="1" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
+        <margin top="10" left="15" bottom="10" right="10"/>
+        <constraints>
+          <grid row="0" column="1" row-span="1" col-span="1" vsize-policy="3" hsize-policy="1" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
+        </constraints>
+        <properties/>
+        <border type="none"/>
+        <children>
+          <vspacer id="spacerTop">
+            <constraints>
+              <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="6" hsize-policy="1" anchor="0" fill="2" indent="0" use-parent-layout="false"/>
+            </constraints>
+          </vspacer>
+          <component id="a69d2" class="javax.swing.JButton" binding="registraRicoveriButton" default-binding="true">
+            <constraints>
+              <grid row="1" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="0" fill="1" indent="0" use-parent-layout="false">
+                <preferred-size width="180" height="40"/>
+              </grid>
+            </constraints>
+            <properties>
+              <text value="Registra Ricovero"/>
+            </properties>
+          </component>
+          <component id="f3da3" class="javax.swing.JButton" binding="registraDimissioneButton" default-binding="true">
+            <constraints>
+              <grid row="2" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="0" fill="1" indent="0" use-parent-layout="false">
+                <preferred-size width="180" height="40"/>
+              </grid>
+            </constraints>
+            <properties>
+              <text value="Registra Dimissione"/>
+            </properties>
+          </component>
+          <component id="logoutBtn" class="javax.swing.JButton" binding="logoutButton">
+            <constraints>
+              <grid row="4" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="0" fill="1" indent="0" use-parent-layout="false">
+                <preferred-size width="180" height="40"/>
+              </grid>
+            </constraints>
+            <properties>
+              <text value="Logout"/>
+            </properties>
+          </component>
+          <vspacer id="5d3ef">
+            <constraints>
+              <grid row="3" column="0" row-span="1" col-span="1" vsize-policy="6" hsize-policy="1" anchor="0" fill="2" indent="0" use-parent-layout="false"/>
+            </constraints>
+          </vspacer>
         </children>
       </grid>
-      <component id="26322" class="javax.swing.JButton" binding="button1" default-binding="true">
-        <constraints>
-          <grid row="3" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="2" fill="0" indent="0" use-parent-layout="false"/>
-        </constraints>
-        <properties>
-          <text value="Button"/>
-        </properties>
-      </component>
-      <component id="f3da3" class="javax.swing.JButton" binding="registraDimissioneButton" default-binding="true">
-        <constraints>
-          <grid row="2" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="2" fill="0" indent="0" use-parent-layout="false"/>
-        </constraints>
-        <properties>
-          <text value="Registra dimissione"/>
-        </properties>
-      </component>
-      <component id="a69d2" class="javax.swing.JButton" binding="registraRicoveriButton" default-binding="true">
-        <constraints>
-          <grid row="1" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="2" fill="0" indent="0" use-parent-layout="false"/>
-        </constraints>
-        <properties>
-          <text value="Registra ricoveri"/>
-        </properties>
-      </component>
-      <vspacer id="1f8af">
-        <constraints>
-          <grid row="0" column="1" row-span="1" col-span="1" vsize-policy="6" hsize-policy="1" anchor="0" fill="2" indent="0" use-parent-layout="false"/>
-        </constraints>
-      </vspacer>
     </children>
   </grid>
 </form>

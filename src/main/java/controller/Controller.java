@@ -24,6 +24,7 @@ public class Controller {
 	public Controller(Login view, JFrame mainFrame) {
 		this.view = view;
 		this.mainFrame = mainFrame;
+		this.mainFrame.getRootPane().setDefaultButton(this.view.getLoginButton());
 
 		this.view.getLoginButton().addActionListener(e -> {
 			String u = view.getUsername();

@@ -10,13 +10,16 @@ public class GestioneAnagraficaPazienti {
     private JTextField txtNome;
     private JTextField txtCognome;
     private JTextField txtRecapito;
-    private JComboBox<Reparto> cmbReparto; // Aggiunto per la suddivisione
+
     private JButton btnAggiungi;
     private JButton btnModifica;
     private JButton btnElimina;
     private JButton btnPulisci;
     private JTable tablePazienti;
     private DefaultTableModel tableModel;
+
+    private JTextField txtRicerca;
+    private JButton btnCerca;
 
     public GestioneAnagraficaPazienti() {
         if (tablePazienti != null) {
@@ -26,7 +29,7 @@ public class GestioneAnagraficaPazienti {
 
     private void creaTabella() {
         // Aggiunta la colonna Reparto per la visualizzazione suddivisa
-        String[] colonne = {"SSN", "Nome", "Cognome", "Recapito", "Reparto"};
+        String[] colonne = {"SSN", "Nome", "Cognome", "Recapito"};
         tableModel = new DefaultTableModel(colonne, 0) {
             @Override
             public boolean isCellEditable(int row, int column) {
@@ -42,11 +45,12 @@ public class GestioneAnagraficaPazienti {
     public JTextField getTxtNome() { return txtNome; }
     public JTextField getTxtCognome() { return txtCognome; }
     public JTextField getTxtRecapito() { return txtRecapito; }
-    public JComboBox<Reparto> getCmbReparto() { return cmbReparto; }
     public JButton getBtnAggiungi() { return btnAggiungi; }
     public JButton getBtnModifica() { return btnModifica; }
     public JButton getBtnElimina() { return btnElimina; }
     public JButton getBtnPulisci() { return btnPulisci; }
     public JTable getTablePazienti() { return tablePazienti; }
     public DefaultTableModel getTableModel() { return tableModel; }
+    public JTextField getTxtRicerca() { return txtRicerca; }
+    public JButton getBtnCerca() { return btnCerca; }
 }

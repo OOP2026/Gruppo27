@@ -14,6 +14,7 @@ import model.Stanza;
 import javax.swing.*;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.table.DefaultTableModel;
+import javax.swing.table.TableRowSorter;
 import java.awt.*;
 import java.util.ArrayList;
 import java.util.Date;
@@ -60,21 +61,18 @@ public class AdminController {
         inizializzaGestioneLetti();
         inizializzaTabella();
         inizializzaAzioni();
+        inizializzaFiltriDimissioni();
         }
+
     private void inizializzaAnagrafica() {
         this.anagraficaView = new GestioneAnagraficaPazienti();
 
         if (view.getTabbedPane() != null && anagraficaView.getMainPanel() != null) {
             view.getTabbedPane().setComponentAt(0, anagraficaView.getMainPanel());
 
-            if (anagraficaView.getCmbReparto() != null && listaReparti != null) {
-                for (Reparto r : listaReparti) {
-                    anagraficaView.getCmbReparto().addItem(r);
-                }
-            }
             inizializzaAzioniAnagrafica();
         } else {
-            System.err.println("ERRORE: I pannelli anagrafica sono NULL. Necessario Rebuild Project.");
+            System.err.println("ERRORE: I pannelli anagrafica sono NULL.");
         }
     }
 
@@ -120,13 +118,12 @@ public class AdminController {
 
                 if (stanza.getLetti() != null) {
                     for (Letto letto : stanza.getLetti()) {
-                        // Disegniamo il letto
+
                         JLabel lblLetto = new JLabel(letto.getCodiceInventario(), SwingConstants.CENTER);
                         lblLetto.setOpaque(true);
                         lblLetto.setPreferredSize(new Dimension(80, 50));
                         lblLetto.setBorder(BorderFactory.createLineBorder(Color.DARK_GRAY));
 
-                        // Logica dei colori
                         if (letto.isLibero()) {
                             lblLetto.setBackground(new Color(144, 238, 144));
                             lblLetto.setForeground(Color.BLACK);
@@ -134,9 +131,17 @@ public class AdminController {
                         } else {
                             lblLetto.setBackground(new Color(255, 99, 71));
                             lblLetto.setForeground(Color.WHITE);
-                            lblLetto.setToolTipText("Letto occupato da un paziente");
-                        }
+                            lblLetto.setToolTipText("Letto occupato (Clicca per dettagli)");
 
+                            lblLetto.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+
+                            lblLetto.addMouseListener(new java.awt.event.MouseAdapter() {
+                                @Override
+                                public void mouseClicked(java.awt.event.MouseEvent e) {
+                                    mostraDettagliPazienteLetto(letto);
+                                }
+                            });
+                        }
                         panelStanza.add(lblLetto);
                     }
                 }
@@ -146,6 +151,56 @@ public class AdminController {
         mappa.revalidate();
         mappa.repaint();
     }
+
+    private void mostraDettagliPazienteLetto(Letto lettoOccupato) {
+            BackupRicoveroMemoria ricoveroTrovato = null;
+
+            for (BackupRicoveroMemoria r : elencoRicoveri) {
+                if (r.lettoAssegnato != null && r.lettoAssegnato.getCodiceInventario().equals(lettoOccupato.getCodiceInventario())) {
+                    ricoveroTrovato = r;
+                    break;
+                }
+            }
+
+            if (ricoveroTrovato != null) {
+                String nome = "Non registrato in anagrafica";
+                String cognome = "";
+
+                for (int i = 0; i < anagraficaView.getTableModel().getRowCount(); i++) {
+                    String ssnTabella = (String) anagraficaView.getTableModel().getValueAt(i, 0);
+                    if (ssnTabella.equalsIgnoreCase(ricoveroTrovato.ssn)) {
+                        nome = (String) anagraficaView.getTableModel().getValueAt(i, 1);
+                        cognome = (String) anagraficaView.getTableModel().getValueAt(i, 2);
+                        break;
+                    }
+                }
+
+                java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("dd/MM/yyyy");
+                String dataInizio = ricoveroTrovato.dataRicovero != null ? sdf.format(ricoveroTrovato.dataRicovero) : "-";
+                String dataFine = ricoveroTrovato.dataDimissionePrevista != null ? sdf.format(ricoveroTrovato.dataDimissionePrevista) : "-";
+
+                String messaggio = "Dettagli Ricovero:\n\n" +
+                        "Letto: " + lettoOccupato.getCodiceInventario() + "\n" +
+                        "Paziente: " + nome + " " + cognome + "\n" +
+                        "SSN: " + ricoveroTrovato.ssn + "\n" +
+                        "Data Ricovero: " + dataInizio + "\n" +
+                        "Dimissione Prevista: " + dataFine;
+
+                JOptionPane.showMessageDialog(
+                        mainFrame,
+                        messaggio,
+                        "Info Paziente - Letto " + lettoOccupato.getCodiceInventario(),
+                        JOptionPane.INFORMATION_MESSAGE
+                );
+            } else {
+                JOptionPane.showMessageDialog(
+                        mainFrame,
+                        "Nessun ricovero associato a questo letto nel sistema.",
+                        "Errore Dati",
+                        JOptionPane.WARNING_MESSAGE
+                );
+            }
+        }
 
     private void inizializzaTabella() {
         String[] colonne = {"SSN Paziente", "Data Ricovero", "Dimissione Prevista", "Letto Assegnato"};
@@ -191,12 +246,25 @@ public class AdminController {
             anagraficaView.getTablePazienti().getSelectionModel().addListSelectionListener(this::caricaDatiPazienteSelezionato);
         }
 
-        // Uso di referenze a metodi per snellire il codice
         anagraficaView.getBtnAggiungi().addActionListener(e -> aggiungiPaziente());
         anagraficaView.getBtnModifica().addActionListener(e -> modificaPaziente());
         anagraficaView.getBtnElimina().addActionListener(e -> eliminaPaziente());
         anagraficaView.getBtnPulisci().addActionListener(e -> pulisciCampiAnagrafica());
-    }
+
+            TableRowSorter<DefaultTableModel> sorter = new TableRowSorter<>(anagraficaView.getTableModel());
+            anagraficaView.getTablePazienti().setRowSorter(sorter);
+
+
+            anagraficaView.getBtnCerca().addActionListener(e -> {
+                String testoRicerca = anagraficaView.getTxtRicerca().getText().trim();
+                if (testoRicerca.isEmpty()) {
+                    sorter.setRowFilter(null);
+                } else {
+                    sorter.setRowFilter(RowFilter.regexFilter("(?i)" + testoRicerca));
+                }
+            });
+            anagraficaView.getTxtRicerca().addActionListener(e -> anagraficaView.getBtnCerca().doClick());
+        }
 
     private void caricaDatiPazienteSelezionato(ListSelectionEvent e) {
         if (!e.getValueIsAdjusting()) {
@@ -206,14 +274,12 @@ public class AdminController {
                 String nome = (String) anagraficaView.getTableModel().getValueAt(rigaSelezionata, 1);
                 String cognome = (String) anagraficaView.getTableModel().getValueAt(rigaSelezionata, 2);
                 String recapito = (String) anagraficaView.getTableModel().getValueAt(rigaSelezionata, 3);
-                Reparto reparto = (Reparto) anagraficaView.getTableModel().getValueAt(rigaSelezionata, 4);
 
                 anagraficaView.getTxtCf().setText(cf);
                 anagraficaView.getTxtCf().setEditable(false);
                 anagraficaView.getTxtNome().setText(nome);
                 anagraficaView.getTxtCognome().setText(cognome);
                 anagraficaView.getTxtRecapito().setText(recapito);
-                anagraficaView.getCmbReparto().setSelectedItem(reparto);
             }
         }
     }
@@ -223,10 +289,10 @@ public class AdminController {
         String nome = anagraficaView.getTxtNome().getText().trim();
         String cognome = anagraficaView.getTxtCognome().getText().trim();
         String recapito = anagraficaView.getTxtRecapito().getText().trim();
-        Reparto reparto = (Reparto) anagraficaView.getCmbReparto().getSelectedItem();
 
-        if (cf.isEmpty() || nome.isEmpty() || cognome.isEmpty() || reparto == null) {
-            JOptionPane.showMessageDialog(anagraficaView.getMainPanel(), "Attenzione: SSN, Nome, Cognome e Reparto sono obbligatori!",
+
+        if (cf.isEmpty() || nome.isEmpty() || cognome.isEmpty()) {
+            JOptionPane.showMessageDialog(anagraficaView.getMainPanel(), "Attenzione: SSN, Nome e Cognome sono obbligatori!",
                     "Campi Mancanti", JOptionPane.WARNING_MESSAGE);
             return;
         }
@@ -239,7 +305,7 @@ public class AdminController {
             }
         }
 
-        anagraficaView.getTableModel().addRow(new Object[]{cf, nome, cognome, recapito, reparto});
+        anagraficaView.getTableModel().addRow(new Object[]{cf, nome, cognome, recapito});
         anagraficaView.getBtnPulisci().doClick();
         JOptionPane.showMessageDialog(anagraficaView.getMainPanel(), "Paziente inserito con successo!");
     }
@@ -255,9 +321,8 @@ public class AdminController {
         String nome = anagraficaView.getTxtNome().getText().trim();
         String cognome = anagraficaView.getTxtCognome().getText().trim();
         String recapito = anagraficaView.getTxtRecapito().getText().trim();
-        Reparto reparto = (Reparto) anagraficaView.getCmbReparto().getSelectedItem();
 
-        if (nome.isEmpty() || cognome.isEmpty() || reparto == null) {
+        if (nome.isEmpty() || cognome.isEmpty() ) {
             JOptionPane.showMessageDialog(anagraficaView.getMainPanel(), "I campi Nome, Cognome e Reparto non possono essere vuoti!",
                     TITOLO_ERRORE, JOptionPane.ERROR_MESSAGE);
             return;
@@ -266,7 +331,6 @@ public class AdminController {
         anagraficaView.getTableModel().setValueAt(nome, rigaSelezionata, 1);
         anagraficaView.getTableModel().setValueAt(cognome, rigaSelezionata, 2);
         anagraficaView.getTableModel().setValueAt(recapito, rigaSelezionata, 3);
-        anagraficaView.getTableModel().setValueAt(reparto, rigaSelezionata, 4);
 
         anagraficaView.getBtnPulisci().doClick();
         JOptionPane.showMessageDialog(anagraficaView.getMainPanel(), "Dati del paziente aggiornati correttamente!");
@@ -283,20 +347,87 @@ public class AdminController {
         anagraficaView.getBtnPulisci().doClick();
     }
 
+    private void inizializzaFiltriDimissioni() {
+        if (view.getDimissioniTable() == null || view.getDateChooserFiltro() == null) return;
+
+
+        TableRowSorter<DefaultTableModel> sorterDimissioni = new TableRowSorter<>(tableModelDimissioni);
+        view.getDimissioniTable().setRowSorter(sorterDimissioni);
+
+        java.text.SimpleDateFormat formatoData = new java.text.SimpleDateFormat("dd/MM/yyyy");
+
+
+        view.getBtnFiltraData().addActionListener(e -> {
+            Date dataScelta = view.getDateChooserFiltro().getDate();
+
+            if (dataScelta == null) {
+
+                sorterDimissioni.setRowFilter(null);
+            } else {
+
+                String dataCercata = formatoData.format(dataScelta);
+                sorterDimissioni.setRowFilter(RowFilter.regexFilter("^" + dataCercata + "$", 1));
+            }
+        });
+
+
+        view.getBtnFiltraOggi().addActionListener(e -> {
+            Date oggi = new Date();
+
+            view.getDateChooserFiltro().setDate(oggi);
+
+            // Applica il filtro
+            String dataOggiStr = formatoData.format(oggi);
+            sorterDimissioni.setRowFilter(RowFilter.regexFilter("^" + dataOggiStr + "$", 1));
+        });
+
+
+        view.getBtnResetFiltro().addActionListener(e -> {
+            view.getDateChooserFiltro().setDate(null);
+            sorterDimissioni.setRowFilter(null);
+        });
+    }
+
     private void pulisciCampiAnagrafica() {
         anagraficaView.getTxtCf().setText("");
         anagraficaView.getTxtCf().setEditable(true);
         anagraficaView.getTxtNome().setText("");
         anagraficaView.getTxtCognome().setText("");
         anagraficaView.getTxtRecapito().setText("");
-        if (anagraficaView.getCmbReparto().getItemCount() > 0) {
-            anagraficaView.getCmbReparto().setSelectedIndex(0);
-        }
         anagraficaView.getTablePazienti().clearSelection();
     }
 
     private void inizializzaAzioni() {
         JFrame parentFrame = (JFrame) SwingUtilities.getWindowAncestor(view.getPanelAmministratore());
+        //inizializzazione pulsante di logout
+        if (view.getLogoutButton() != null) {
+            view.getLogoutButton().addActionListener(e -> {
+                int conferma = JOptionPane.showConfirmDialog(
+                        mainFrame,
+                        "Sei sicuro di voler effettuare il logout?",
+                        "Conferma Logout",
+                        JOptionPane.YES_NO_OPTION,
+                        JOptionPane.QUESTION_MESSAGE
+                );
+
+                if (conferma == JOptionPane.YES_OPTION) {
+                    gui.Login loginView = new gui.Login();
+
+                    new Controller(loginView, mainFrame);
+
+                    mainFrame.setExtendedState(JFrame.NORMAL);
+
+                    mainFrame.setSize(750, 650);
+
+                    mainFrame.setLocationRelativeTo(null);
+
+                    mainFrame.setTitle("Login");
+                    mainFrame.setContentPane(loginView.getPanelLogin());
+                    mainFrame.revalidate();
+                    mainFrame.repaint();
+                }
+            });
+        }
         //Gestione pulsante RegistraRicovero
         if(view.getRegistraRicoveriButton() == null || view.getRegistraDimissioneButton() == null) {
             System.err.println("ERRORE GUI: I bottoni sono Null. Esegui 'Build -> Rebuild Project' in IntelliJ.");
@@ -305,11 +436,36 @@ public class AdminController {
         view.getRegistraRicoveriButton().addActionListener(e -> {
             RegistraRicovero dialogRicovero = new RegistraRicovero(mainFrame, listaReparti);
             dialogRicovero.getAnnullaButton().addActionListener(a -> dialogRicovero.dispose());
+
             dialogRicovero.getSalvaButton().addActionListener(s -> {
-                if (dialogRicovero.getSSN().trim().isEmpty()) {
+                String ssnInserito = dialogRicovero.getSSN().trim();
+                if (ssnInserito.isEmpty()) {
                     JOptionPane.showMessageDialog(dialogRicovero, "Attenzione: l'SSN del paziente è obbligatorio!", "Errore", JOptionPane.WARNING_MESSAGE);
                     return;
                 }
+                boolean esisteInAnagrafica = false;
+                for (int i = 0; i < anagraficaView.getTableModel().getRowCount(); i++) {
+                    String ssnAnagrafica = (String) anagraficaView.getTableModel().getValueAt(i, 0);
+                    if (ssnAnagrafica.equalsIgnoreCase(ssnInserito)) {
+                        esisteInAnagrafica = true;
+                        break;
+                    }
+                }
+            if (!esisteInAnagrafica) {
+                JOptionPane.showMessageDialog(dialogRicovero,
+                        "Impossibile avviare il ricovero: l'SSN inserito non è registrato nel sistema.\nRegistra prima il paziente nella scheda 'Anagrafica Pazienti'.",
+                        "Paziente Sconosciuto", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+                for (BackupRicoveroMemoria r : elencoRicoveri) {
+                    if (r.ssn.equalsIgnoreCase(ssnInserito)) {
+                        JOptionPane.showMessageDialog(dialogRicovero,
+                                "Impossibile procedere: Il paziente con SSN " + ssnInserito + " risulta già ricoverato in struttura.",
+                                "Errore Ricovero Duplicato", JOptionPane.ERROR_MESSAGE);
+                        return;
+                    }
+                }
+
                 dialogRicovero.setConfermato(true);
                 dialogRicovero.dispose();
             });
@@ -392,9 +548,22 @@ public class AdminController {
 
         Reparto cardiologia = new Reparto(10, "Cardiologia");
         Stanza c1 = new Stanza(101);
-        c1.aggiungiLetto(new Letto("L11", true)); // Assumo costruttore: Letto(codice, isLibero)
+        c1.aggiungiLetto(new Letto("L1", true)); // Assumo costruttore: Letto(codice, isLibero)
         c1.aggiungiLetto(new Letto("L2", true));
+        c1.aggiungiLetto(new Letto("L22", true));
         cardiologia.aggiungiStanza(c1);
+
+        Stanza c2 = new Stanza(111);
+        c2.aggiungiLetto(new Letto("L1", true)); // Assumo costruttore: Letto(codice, isLibero)
+        c2.aggiungiLetto(new Letto("L2", true));
+        c2.aggiungiLetto(new Letto("L22", true));
+        cardiologia.aggiungiStanza(c2);
+
+        Stanza c3 = new Stanza(1011);
+        c3.aggiungiLetto(new Letto("L1", true)); // Assumo costruttore: Letto(codice, isLibero)
+        c3.aggiungiLetto(new Letto("L2", true));
+        c3.aggiungiLetto(new Letto("L22", true));
+        cardiologia.aggiungiStanza(c3);
         reparti.add(cardiologia);
 
         Reparto chirurgia = new Reparto(20, "Chirurgia");
@@ -403,6 +572,55 @@ public class AdminController {
         ch1.aggiungiLetto(new Letto("L4", true));
         chirurgia.aggiungiStanza(ch1);
         reparti.add(chirurgia);
+
+        Reparto pediatria = new Reparto(30, "Pediatria");
+        Stanza p1 = new Stanza(301);
+        p1.aggiungiLetto(new Letto("L5", true));
+        p1.aggiungiLetto(new Letto("L6", true));
+        pediatria.aggiungiStanza(p1);
+        reparti.add(pediatria);
+
+        Reparto ortopedia = new Reparto(40, "Ortopedia");
+        Stanza o1 = new Stanza(401);
+        o1.aggiungiLetto(new Letto("L7", true));
+        o1.aggiungiLetto(new Letto("L8", true));
+        ortopedia.aggiungiStanza(o1);
+        reparti.add(ortopedia);
+
+        Reparto neurologia = new Reparto(50, "Neurologia");
+        Stanza n1 = new Stanza(501);
+        n1.aggiungiLetto(new Letto("L9", true));
+        n1.aggiungiLetto(new Letto("L10", true));
+        neurologia.aggiungiStanza(n1);
+        reparti.add(neurologia);
+
+        Reparto oncologia = new Reparto(60, "Oncologia");
+        Stanza on1 = new Stanza(601);
+        on1.aggiungiLetto(new Letto("L12", true)); // Salto L11 perché lo hai già usato in Cardiologia
+        on1.aggiungiLetto(new Letto("L13", true));
+        oncologia.aggiungiStanza(on1);
+        reparti.add(oncologia);
+
+        Reparto ginecologia = new Reparto(70, "Ginecologia");
+        Stanza g1 = new Stanza(701);
+        g1.aggiungiLetto(new Letto("L14", true));
+        g1.aggiungiLetto(new Letto("L15", true));
+        ginecologia.aggiungiStanza(g1);
+        reparti.add(ginecologia);
+
+        Reparto terapiaIntensiva = new Reparto(80, "Terapia Intensiva");
+        Stanza t1 = new Stanza(801);
+        t1.aggiungiLetto(new Letto("L16", true));
+        t1.aggiungiLetto(new Letto("L17", true));
+        terapiaIntensiva.aggiungiStanza(t1);
+        reparti.add(terapiaIntensiva);
+
+        Reparto psichiatria = new Reparto(90, "Psichiatria");
+        Stanza ps1 = new Stanza(901);
+        ps1.aggiungiLetto(new Letto("L18", true));
+        ps1.aggiungiLetto(new Letto("L19", true));
+        psichiatria.aggiungiStanza(ps1);
+        reparti.add(psichiatria);
 
         return reparti;
     }
