@@ -60,5 +60,6 @@ public class Controller {
 		mainFrame.setExtendedState(JFrame.MAXIMIZED_BOTH);
 		mainFrame.revalidate();
 		mainFrame.repaint();
+		mainFrame.setResizable(true);
 	}
 }
