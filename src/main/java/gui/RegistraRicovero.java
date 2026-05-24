@@ -83,7 +83,7 @@ public class RegistraRicovero extends JDialog{
     }
 
     public String getSSN() { return SSNTextField.getText(); }
-    public String getDiagnosi(){ return DiagnosiTextField.getText();}
+    public String getDiagnosiEntrata(){ return DiagnosiTextField.getText();}
     public boolean isDayHospital() { return dayHospitalCheckBox.isSelected(); }
     public String getDescrizione() { return descrizioneTextArea.getText(); }
     public JDateChooser getDateChooserRicovero() { return dateChooserRicovero; }
@@ -94,6 +94,5 @@ public class RegistraRicovero extends JDialog{
     public void setConfermato(boolean confermato) { this.confermato = confermato; }
     public Reparto getRepartoSelezionato() { return (Reparto) RepartoComboBox.getSelectedItem(); }
     public Letto getLettoSelezionato() { return (Letto) LettoComboBox.getSelectedItem(); }
-
 
 }

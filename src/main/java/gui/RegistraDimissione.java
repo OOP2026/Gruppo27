@@ -1,6 +1,9 @@
 package gui;
 import com.toedter.calendar.JDateChooser;
+import controller.AdminController;
+
 import javax.swing.*;
+import javax.swing.text.AbstractDocument;
 import java.awt.*;
 import java.util.Date;
 
@@ -35,10 +38,17 @@ public class RegistraDimissione extends JDialog {
         setResizable(false);
     }
 
-    public String getSsn() {
-        return ssnField.getText();
+    public void setupSSNFilter() {
+        if (ssnField != null) {
+            ((AbstractDocument) ssnField.getDocument()).setDocumentFilter(new AdminController.UpperCaseDocumentFilter());
+        }
     }
-    public String getEsito() {
+
+    // 2. Metodo per ottenere il valore
+    public String getSSN() {
+        return ssnField != null ? ssnField.getText() : null;
+    }
+    public String getDiagnosiUscita() {
         return esitoTextArea.getText();
     }
 
@@ -65,27 +75,5 @@ public class RegistraDimissione extends JDialog {
     public void setConfermato(boolean confermato) {
         this.confermato = confermato;
     }
-    /*prova dimissione poi si cancella
-    public static void main(String[] args) {
-        SwingUtilities.invokeLater(() -> {
-            JFrame frame = new JFrame();
-            Date ipoteticaDataPrevista = new Date();
-            RegistraDimissione dialog = new RegistraDimissione(frame, ipoteticaDataPrevista);
 
-            dialog.getAnnullaButton().addActionListener(e -> dialog.dispose());
-            dialog.getSalvaButton().addActionListener(e -> {
-                dialog.setConfermato(true);
-                dialog.dispose();
-            });
-
-            dialog.setVisible(true);
-
-            if (dialog.isConfermato()) {
-                System.out.println("Dimissione Registrata!");
-                System.out.println("SSN: " + dialog.getSsn());
-                System.out.println("Data Effettiva: " + dialog.getDimissioneEffettiva().getDate());
-            }
-            System.exit(0);
-        });
-    }*/
 }
