@@ -97,7 +97,7 @@ public class MedicoController {
                 } else {
                     // Tabella Settimanale
                     LocalDate lunedi = datagiornaliera.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
-                    LocalDate giornoCorrente = lunedi.plusDays(column - 1);
+                    LocalDate giornoCorrente = lunedi.plusDays((long)column - 1);
                     slotOrario = LocalDateTime.of(giornoCorrente, LocalTime.of(ora, 0));
                 }
                 //Se il medico è in turno, illumina la cella di VERDE
@@ -287,7 +287,7 @@ public class MedicoController {
                 if (riga == -1 || colonna == 0) return;
 
                 LocalDate lunedi = datagiornaliera.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
-                LocalDate giornoSelezionato = lunedi.plusDays(colonna - 1);
+                LocalDate giornoSelezionato = lunedi.plusDays((long)colonna - 1);
                 int oraSlot = 8 + riga;
 
                 List<PrestazioneMedica> filtrate = new ArrayList<>();
