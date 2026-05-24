@@ -15,6 +15,11 @@ public class InterfacciaMedico {
     private JPanel ContenutoSettimanale;
     private JTable AgendaGiornaliera;
     private JTable AgendaSettimanale;
+    private JButton logout;
+    private JLabel LabelGiornaliera;
+    private JLabel LabelSettimanale;
+    private JButton AvantiButton;
+    private JButton IndietroButton;
 
     public InterfacciaMedico() {
         //usato dal controller
@@ -29,6 +34,17 @@ public class InterfacciaMedico {
     public JPanel getPanelMedico() {return panelMedico;}
     public JTable getAgendaSettimanale(){ return AgendaSettimanale;}
     public JTable getAgendaGiornaliera(){ return AgendaGiornaliera;}
+    public JScrollPane getGiornaliera() {return Giornaliera;}
+    public JScrollPane getSettimanale() {return Settimanale;}
+    public JButton getWeekButton() {return WeekButton;}
+    public JButton getDayButton() {return DayButton;}
+    public JPanel getContenutoGiornaliero() {return ContenutoGiornaliera;}
+    public JPanel getContenutoSettimanale(){ return ContenutoSettimanale;}
+    public JLabel getLabelGiornaliera(){return LabelGiornaliera;}
+    public JLabel getLabelSettimanale(){return LabelSettimanale;}
+    public JButton getAvantiButton(){return AvantiButton;}
+    public JButton getIndietroButton(){return IndietroButton;}
+    public JButton getLogoutButton(){return logout;}
 }
 //ToDo Aggiungere funzione aggiungi e rimuovi prestazione
 //ToDo Rendere le agende a comparsa procedurale

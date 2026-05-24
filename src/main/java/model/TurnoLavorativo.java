@@ -20,7 +20,7 @@ public class TurnoLavorativo {
     }
 
     public GiornoSettimana getGiorno(){ return giorno;}
-    public void setGiorno(GiornoSettimana giorno){ this.giorno = giorno;}
+    public void setGiorno (GiornoSettimana giorno){ this.giorno = giorno;}
 
     public LocalDateTime getInizio(){ return inizio;}
     public void setInizio(LocalDateTime inizio){ this.inizio = inizio;}

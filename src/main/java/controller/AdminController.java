@@ -241,7 +241,6 @@ public class AdminController {
 
     // =========================================================================
     // METODI GESTIONE AZIONI
-    // =========================================================================
 
     private void gestisciLogout() {
         int conferma = JOptionPane.showConfirmDialog(

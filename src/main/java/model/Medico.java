@@ -48,4 +48,6 @@ public class Medico extends Utente {
         }
         return false;
     }
+
+    public List<TurnoLavorativo> getTurni(){return turni;}
 }
