@@ -45,7 +45,7 @@ public class Controller {
 
 	private void apriMedico(Medico m) {
 		InterfacciaMedico gui = new InterfacciaMedico();
-		new MedicoController(gui, m);
+		new MedicoController(gui, m, mainFrame);
 		cambiaSchermata(gui.getPanelMedico(), "Dashboard Medico");
 	}
 

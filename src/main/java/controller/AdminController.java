@@ -261,6 +261,8 @@ public class AdminController {
             mainFrame.setContentPane(loginView.getPanelLogin());
             mainFrame.revalidate();
             mainFrame.repaint();
+            mainFrame.setResizable(false);
+
         }
     }
 

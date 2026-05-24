@@ -23,6 +23,7 @@ import java.util.List;
 public class MedicoController {
     private InterfacciaMedico view;
     private Medico model;
+    private final JFrame mainFrame;
     private LocalDate datagiornaliera;
 
     private DefaultTableModel modelGiornaliero;
@@ -32,9 +33,10 @@ public class MedicoController {
     private final DateTimeFormatter oraFormatter = DateTimeFormatter.ofPattern("HH:mm");
     private final DateTimeFormatter dataOraFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
 
-    public MedicoController(InterfacciaMedico view, Medico model) {
+    public MedicoController(InterfacciaMedico view, Medico model, JFrame mainFrame) {
         this.view = view;
         this.model = model;
+        this.mainFrame = mainFrame;
         this.datagiornaliera = LocalDate.now();
         this.prestazioniRegistrate = new ArrayList<>();
 
@@ -185,6 +187,10 @@ public class MedicoController {
 
     private void inizializzaAzioni() {
         JFrame parentFrame = (JFrame) SwingUtilities.getWindowAncestor(view.getPanelMedico());
+
+        if (view.getLogoutButton() != null) {
+            view.getLogoutButton().addActionListener(e -> gestisciLogout());
+        }
 
         //DEFINIZIONE DELL'AZIONE PER AGGIUNGERE LE PRESTAZIONI
         java.awt.event.ActionListener aggiungerePrestazioneAzione = e -> {
@@ -360,4 +366,27 @@ public class MedicoController {
 
         model.aggiungiTurno(new TurnoLavorativo(TurnoLavorativo.GiornoSettimana.VENERDI, LocalDateTime.of(lunedi.plusDays(4), LocalTime.of(8, 0)), LocalDateTime.of(lunedi.plusDays(4), LocalTime.of(14, 0))));
     }
+    private void gestisciLogout() {
+        int conferma = JOptionPane.showConfirmDialog(
+                mainFrame,
+                "Sei sicuro di voler effettuare il logout?",
+                "Conferma Logout",
+                JOptionPane.YES_NO_OPTION,
+                JOptionPane.QUESTION_MESSAGE
+        );
+
+        if (conferma == JOptionPane.YES_OPTION) {
+            gui.Login loginView = new gui.Login();
+            new Controller(loginView, mainFrame);
+            mainFrame.setExtendedState(JFrame.NORMAL);
+            mainFrame.setSize(750, 650);
+            mainFrame.setLocationRelativeTo(null);
+            mainFrame.setTitle("Login");
+            mainFrame.setContentPane(loginView.getPanelLogin());
+            mainFrame.revalidate();
+            mainFrame.repaint();
+            mainFrame.setResizable(false);
+        }
+    }
+
 }
