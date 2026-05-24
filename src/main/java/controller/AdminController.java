@@ -63,7 +63,7 @@ public class AdminController {
     private static final Logger LOGGER           = Logger.getLogger(AdminController.class.getName());
     private static final String         TITOLO_ERRORE    = "Errore";
     private static final String         DATE_FORMAT      = "dd/MM";
-    private static final SimpleDateFormat SDF            = new SimpleDateFormat(DATE_FORMAT);
+    private SimpleDateFormat SDF            = new SimpleDateFormat(DATE_FORMAT);
 
     // Indici table anagrafica
     private static final int COL_SSN      = 0;
