@@ -1,6 +1,7 @@
 package controller;
 
 import gui.InterfacciaMedico;
+import gui.RegistraPrestazione;
 import model.Medico;
 import model.TurnoLavorativo;
 import model.PrestazioneMedica;
