@@ -46,5 +46,3 @@ public class InterfacciaMedico {
     public JButton getIndietroButton(){return IndietroButton;}
     public JButton getLogoutButton(){return logout;}
 }
-//ToDo Aggiungere funzione aggiungi e rimuovi prestazione
-//ToDo Rendere le agende a comparsa procedurale

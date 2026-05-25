@@ -52,15 +52,6 @@ public class MedicoController {
         inizializzaAzioni();
     }
 
-    private PrestazioneMedica trovaPrestazioneInSlot(LocalDateTime dataOra) {
-        for (PrestazioneMedica p : prestazioniRegistrate) {
-            if (p.getDataOra().equals(dataOra)) {
-                return p;
-            }
-        }
-        return null;
-    }
-
     private void inizializzaTabelle() {
         //Configurazione Tabella Giornaliera
         String[] colonneGiornaliera = {"Orario", "Prestazione"};
@@ -140,7 +131,7 @@ public class MedicoController {
 
         // 2. Svuota e ricarica i dati della tabella
         modelGiornaliero.setRowCount(0);
-        for (int ora = 8; ora < 20; ora++) {
+        for (int ora = 8; ora <= 20; ora++) {
             String orarioStr = String.format("%02d:00", ora);
             String contenutoCella = "";
 
@@ -157,16 +148,14 @@ public class MedicoController {
     private void caricaAgendaSettimanale() {
         LocalDate lunedi = datagiornaliera.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
         LocalDate domenica = lunedi.plusDays(6);
-
-        // 1. Aggiorna l'intervallo di date in alto (es: "Settimanana dal 25/05/2026 al 31/05/2026")
+        //Aggiorna l'intervallo di date in alto
         if (view.getLabelSettimanale() != null) {
             DateTimeFormatter formatoSettimana = DateTimeFormatter.ofPattern("dd/MM/yyyy");
             view.getLabelSettimanale().setText("Settimana dal " + lunedi.format(formatoSettimana) + " al " + domenica.format(formatoSettimana));
         }
-
-        // 2. Svuota e ricarica i dati della tabella settimanale
+        //Svuota e ricarica i dati della tabella settimanale
         modelSettimanale.setRowCount(0);
-        for (int ora = 8; ora < 20; ora++) {
+        for (int ora = 8; ora <= 20; ora++) {
             Object[] riga = new Object[8];
             riga[0] = String.format("%02d:00", ora);
 
@@ -189,61 +178,68 @@ public class MedicoController {
     private void inizializzaAzioni() {
         JFrame parentFrame = (JFrame) SwingUtilities.getWindowAncestor(view.getPanelMedico());
 
+        //GESTIONE DEL BOTTONE LOGOUT
         if (view.getLogoutButton() != null) {
             view.getLogoutButton().addActionListener(e -> gestisciLogout());
         }
 
-        //DEFINIZIONE DELL'AZIONE PER AGGIUNGERE LE PRESTAZIONI
+        //DEFINIZIONE DELL'AZIONE PER AGGIUNGERE LE PRESTAZIONI CON LA NUOVA INTERFACCIA DIALOG
         java.awt.event.ActionListener aggiungerePrestazioneAzione = e -> {
-            String inputDataOra = JOptionPane.showInputDialog(parentFrame,
-                    "Inserisci data e ora della prestazione intermediaria\nFormato: GG/MM/AAAA HH:MM (es: 24/05/2026 10:15):",
-                    "Nuova Prestazione Orario Libero", JOptionPane.QUESTION_MESSAGE);
+            // Creiamo un'istanza della tua nuova finestra di dialogo passandogli il frame principale
+            gui.RegistraPrestazione dialog = new gui.RegistraPrestazione(parentFrame);
 
-            if (inputDataOra == null || inputDataOra.trim().isEmpty()) return;
+            // Azione per il tasto ANNULLA della JDialog
+            dialog.getAnnullaButton().addActionListener(evt -> dialog.dispose());
 
-            try {
-                LocalDateTime orarioScelto = LocalDateTime.parse(inputDataOra.trim(), dataOraFormatter);
+            // Azione per il tasto SALVA della JDialog
+            dialog.getSalvaButton().addActionListener(evt -> {
+                try {
+                    // Recuperiamo il LocalDateTime combinato dal JDateChooser + JComboBox dell'ora
+                    LocalDateTime orarioScelto = dialog.getLocalDateTimeInput();
 
-                if (!model.isPrestazioneValid(orarioScelto)) {
-                    JOptionPane.showMessageDialog(parentFrame,
-                            "Impossibile registrare la prestazione!\nIn questa data/ora il medico non è in turno lavorativo.",
-                            "Pianificazione Rifiutata", JOptionPane.ERROR_MESSAGE);
-                    return;
+                    if (orarioScelto == null) {
+                        JOptionPane.showMessageDialog(dialog, "Seleziona una data valida!", "Errore Data", JOptionPane.WARNING_MESSAGE);
+                        return;
+                    }
+                    // CONTROLLO STRUTTURATO: Il medico è in turno in quell'orario intermediario?
+                    if (!model.isPrestazioneValid(orarioScelto)) {
+                        JOptionPane.showMessageDialog(dialog,
+                                "Impossibile registrare la prestazione!\nIn questa data/ora il medico non è in turno lavorativo.",
+                                "Pianificazione Rifiutata", JOptionPane.ERROR_MESSAGE);
+                        return;
+                    }
+                    // Recuperiamo il tipo (VISITA o INTERVENTO_CHIRURGICO)
+                    String tipoScelto = dialog.getTipoSelezionato();
+                    // Recuperiamo l'esito inserito nella JTextArea
+                    String esito = dialog.getEsitoInput();
+                    if (esito.isEmpty()) {
+                        esito = "Ancora non erogato";
+                    }
+                    // Mappiamo la stringa nell'Enum corretto
+                    PrestazioneMedica.Prestazione tipoEnum = tipoScelto.equals("VISITA") ?
+                            PrestazioneMedica.Prestazione.VISITA : PrestazioneMedica.Prestazione.INTERVENTO_CHIRURGICO;
+                    // Creazione dell'oggetto e inserimento nel Model e nella lista locale
+                    PrestazioneMedica nuovaPrestazione = new PrestazioneMedica(tipoEnum, orarioScelto, esito);
+                    model.registraPrestazione(nuovaPrestazione);
+                    prestazioniRegistrate.add(nuovaPrestazione);
+                    // Ricarichiamo ed aggiorniamo al volo le tabelle della schermata principale
+                    caricaAgendaGiornaliera();
+                    caricaAgendaSettimanale();
+                    // Chiudiamo il dialog e confermiamo il successo
+                    dialog.dispose();
+                    JOptionPane.showMessageDialog(parentFrame, "Prestazione pianificata correttamente alle " + orarioScelto.format(oraFormatter));
+                } catch (Exception ex) {
+                    JOptionPane.showMessageDialog(dialog, "Errore durante il salvataggio dei dati: " + ex.getMessage(), "Errore", JOptionPane.ERROR_MESSAGE);
                 }
-
-                String[] opzioni = {"VISITA", "INTERVENTO_CHIRURGICO"};
-                String tipoScelto = (String) JOptionPane.showInputDialog(parentFrame,
-                        "Orario Convalidato (In Turno). Scegli la prestazione:", "Tipologia Atto",
-                        JOptionPane.QUESTION_MESSAGE, null, opzioni, opzioni[0]);
-
-                if (tipoScelto == null) return;
-
-                String esito = JOptionPane.showInputDialog(parentFrame, "Inserisci referto clinico iniziale:");
-                if (esito == null || esito.trim().isEmpty()) esito = "Referto regolare";
-
-                PrestazioneMedica.Prestazione tipoEnum = tipoScelto.equals("VISITA") ?
-                        PrestazioneMedica.Prestazione.VISITA : PrestazioneMedica.Prestazione.INTERVENTO_CHIRURGICO;
-
-                PrestazioneMedica nuovaPrestazione = new PrestazioneMedica(tipoEnum, orarioScelto, esito);
-                model.registraPrestazione(nuovaPrestazione);
-                prestazioniRegistrate.add(nuovaPrestazione);
-
-                caricaAgendaGiornaliera();
-                caricaAgendaSettimanale();
-
-                JOptionPane.showMessageDialog(parentFrame, "Prestazione pianificata correttamente alle " + orarioScelto.format(oraFormatter));
-
-            } catch (Exception ex) {
-                JOptionPane.showMessageDialog(parentFrame, "Formato data/ora non valido! Ricorda: GG/MM/AAAA HH:MM", "Errore Input", JOptionPane.ERROR_MESSAGE);
-            }
+            });
+            // Mostriamo la finestra (essendo modale bloccherà il frame principale finché non viene chiusa o salvata)
+            dialog.setVisible(true);
         };
-
-        //COLLEGAMENTO DEI PULSANTI DI INSERIMENTO
+        // COLLEGAMENTO DEI PULSANTI DI INSERIMENTO
         if (view.getDayButton() != null) view.getDayButton().addActionListener(aggiungerePrestazioneAzione);
         if (view.getWeekButton() != null) view.getWeekButton().addActionListener(aggiungerePrestazioneAzione);
 
-
-        //COLLEGAMENTO DEI PULSANTI DI NAVIGAZIONE AVANTI/INDIETRO
+        // COLLEGAMENTO DEI PULSANTI DI NAVIGAZIONE AVANTI/INDIETRO
         if (view.getIndietroButton() != null) {
             view.getIndietroButton().addActionListener(evt -> {
                 this.datagiornaliera = this.datagiornaliera.minusWeeks(1);
@@ -259,8 +255,7 @@ public class MedicoController {
                 caricaAgendaSettimanale();
             });
         }
-
-        //CLICK SULLA TABELLA GIORNALIERA
+        // CLICK SULLA TABELLA GIORNALIERA
         view.getAgendaGiornaliera().addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
@@ -278,8 +273,7 @@ public class MedicoController {
                 gestisciSelezioneEMostraDettagli(parentFrame, filtrate);
             }
         });
-
-        //CLICK SULLA TABELLA SETTIMANALE
+        // CLICK SULLA TABELLA SETTIMANALE
         view.getAgendaSettimanale().addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
@@ -300,7 +294,6 @@ public class MedicoController {
                 gestisciSelezioneEMostraDettagli(parentFrame, filtrate);
             }
         });
-
     }
 
     private void gestisciSelezioneEMostraDettagli(JFrame parentFrame, List<PrestazioneMedica> filtrate) {
@@ -308,13 +301,11 @@ public class MedicoController {
             JOptionPane.showMessageDialog(parentFrame, "Nessuna prestazione registrata in questo slot orario.", "Slot Vuoto", JOptionPane.INFORMATION_MESSAGE);
             return;
         }
-
         // Se ce n'è solo una, la mostriamo direttamente
         if (filtrate.size() == 1) {
             mostraSchedaDettagli(parentFrame, filtrate.get(0));
             return;
         }
-
         // Se ce ne sono più di una (es. 10:15 e 10:45), mostriamo un menù a tendina per scegliere
         String[] opzioniIntermedie = new String[filtrate.size()];
         for (int i = 0; i < filtrate.size(); i++) {
@@ -341,19 +332,36 @@ public class MedicoController {
                 "Tipologia Atto: " + p.getTipo() + "\n" +
                 "Data e Ora Esecuzione: " + p.getDataOra().format(dataOraFormatter) + "\n" +
                 "Esito Diagnostico / Note:\n" + p.getEsito();
-        JOptionPane.showMessageDialog(frame, scheda, "Dettagli Clinici Atto", JOptionPane.INFORMATION_MESSAGE);
-    }
+        String[] opzioni = {"Chiudi", "Modifica Esito"};
+        //Mostriamo il pannello interattivo
+        int scelta = JOptionPane.showOptionDialog(
+                frame,
+                scheda,
+                "Dettagli Clinici Atto",
+                JOptionPane.YES_NO_OPTION,
+                JOptionPane.INFORMATION_MESSAGE,
+                null,
+                opzioni,
+                opzioni[0]
+        );
+        //Se il medico clicca su "Modifica Esito"
+        if (scelta == 1) {
+            String nuovoEsito = JOptionPane.showInputDialog(
+                    frame,
+                    "Inserisci il nuovo esito diagnostico / referto:",
+                    "Modifica Esito",
+                    JOptionPane.QUESTION_MESSAGE
+            );
+            // Se l'utente non ha premuto annulla e non ha lasciato il campo vuoto
+            if (nuovoEsito != null && !nuovoEsito.trim().isEmpty()) {
+                // Aggiorna l'esito direttamente sull'oggetto PrestazioneMedica
+                p.setEsito(nuovoEsito.trim());
+                // Ricarica i dati grafici per mostrare eventuali variazioni istantanee nelle tabelle
+                caricaAgendaGiornaliera();
+                caricaAgendaSettimanale();
 
-    private TurnoLavorativo.GiornoSettimana mappaColonnaAGiornoEnum(int col) {
-        switch (col) {
-            case 1: return TurnoLavorativo.GiornoSettimana.LUNEDI;
-            case 2: return TurnoLavorativo.GiornoSettimana.MARTEDI;
-            case 3: return TurnoLavorativo.GiornoSettimana.MERCOLEDI;
-            case 4: return TurnoLavorativo.GiornoSettimana.GIOVEDI;
-            case 5: return TurnoLavorativo.GiornoSettimana.VENERDI;
-            case 6: return TurnoLavorativo.GiornoSettimana.SABATO;
-            case 7: return TurnoLavorativo.GiornoSettimana.DOMENICA;
-            default: return null;
+                JOptionPane.showMessageDialog(frame, "Esito aggiornato con successo!", "Operazione Completata", JOptionPane.INFORMATION_MESSAGE);
+            }
         }
     }
 
@@ -389,5 +397,4 @@ public class MedicoController {
             mainFrame.setResizable(false);
         }
     }
-
 }
