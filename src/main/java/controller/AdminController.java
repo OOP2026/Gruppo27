@@ -6,10 +6,9 @@ import gui.RegistraRicovero;
 import gui.GestioneAnagraficaPazienti;
 import gui.GestioneLetti;
 
-import model.Amministratore;
-import model.Reparto;
-import model.Letto;
-import model.Stanza;
+import model.*;
+import model.Ricovero;
+import model.Paziente;
 
 import javax.swing.*;
 import javax.swing.event.ListSelectionEvent;
@@ -29,30 +28,6 @@ import java.util.Date;
 import java.util.List;
 import java.util.logging.Logger;
 
-class BackupRicoveroMemoria {
-
-    private static final String DEFAULT_DIAGNOSI = "-";
-
-    String ssn;
-    Date dataRicovero;
-    Date dataDimissionePrevista;
-    Date dataDimissioneEffettiva;
-    Letto lettoAssegnato;
-    String diagnosiEntrata;
-    String diagnosiUscita;
-    boolean inCorso;
-
-    BackupRicoveroMemoria(String ssn, Date dataRicovero, Date dataDimissionePrevista,
-                          Letto lettoAssegnato, String diagnosiEntrata) {
-        this.ssn                   = ssn;
-        this.dataRicovero          = dataRicovero;
-        this.dataDimissionePrevista = dataDimissionePrevista;
-        this.lettoAssegnato        = lettoAssegnato;
-        this.diagnosiEntrata       = diagnosiEntrata;
-        this.diagnosiUscita        = DEFAULT_DIAGNOSI;
-        this.inCorso               = true;
-    }
-}
 
 // ---------------------------------------------------------------------------
 // AdminController
@@ -73,10 +48,11 @@ public class AdminController {
 
     // ────────────────────────────────────────────────────────────────
     private final InterfacciaAmministratore view;
-    private final Amministratore            admin;
-    private final JFrame                    mainFrame;
-    private final List<Reparto>             listaReparti;
-    private final List<BackupRicoveroMemoria> elencoRicoveri = new ArrayList<>();
+    private final Amministratore                  admin;
+    private final JFrame                          mainFrame;
+    private final List<Reparto>                   listaReparti;
+    private final List<Ricovero> elencoRicoveri = new ArrayList<>();
+    private final List<Paziente> elencoPazienti = new ArrayList<>();
 
     private GestioneAnagraficaPazienti anagraficaView;
     private GestioneLetti              gestioneLettiView;
@@ -309,7 +285,7 @@ public class AdminController {
             lettoScelto.setStatoAttuale(false);
         }
 
-        BackupRicoveroMemoria nuovoRicovero = new BackupRicoveroMemoria(
+        Ricovero nuovoRicovero = new Ricovero(
                 normalizeSsn(dialogRicovero.getSSN()),
                 dialogRicovero.getDateChooserRicovero().getDate(),
                 dialogRicovero.getDateChooserDimissione().getDate(),
@@ -336,11 +312,11 @@ public class AdminController {
         }
 
         String ssnSelezionato = normalizeSsn((String) tabellaDimissioni.getValueAt(rigaSelezionata, 0));
-        BackupRicoveroMemoria ricovero = trovaRicoveroAttivo(ssnSelezionato);
+        Ricovero ricovero = trovaRicoveroAttivo(ssnSelezionato);
         if (ricovero == null) return;
 
         RegistraDimissione dialogDimissione =
-                new RegistraDimissione(parentFrame, ricovero.dataDimissionePrevista, ssnSelezionato);
+                new RegistraDimissione(parentFrame, ricovero.getDataDimissionePrevista(), ssnSelezionato);
         dialogDimissione.getAnnullaButton().addActionListener(a -> dialogDimissione.dispose());
         dialogDimissione.getSalvaButton().addActionListener(s -> {
             dialogDimissione.setConfermato(true);
@@ -354,13 +330,13 @@ public class AdminController {
         // Read diagnosis silently from the form — no popup
         String diagnosiUscita = normalizeDiagnosi(dialogDimissione.getDiagnosiUscita());
 
-        ricovero.inCorso               = false;
-        ricovero.diagnosiUscita        = diagnosiUscita;
-        ricovero.dataDimissioneEffettiva = new Date();
+        ricovero.setInCorso(false);
+        ricovero.setDiagnosiUscita(diagnosiUscita);
+        ricovero.setDataDimissioneEffettiva(new Date());
 
-        if (ricovero.lettoAssegnato != null) {
-            ricovero.lettoAssegnato.setStatoAttuale(true);
-            ricovero.lettoAssegnato = null;
+        if (ricovero.getLettoAssegnato() != null) {
+            ricovero.getLettoAssegnato().setStatoAttuale(true);
+            ricovero.setLettoAssegnato(null);
         }
 
         aggiornaTabelle();
@@ -406,6 +382,9 @@ public class AdminController {
             return;
         }
 
+        Paziente nuovoPaziente = new Paziente(cf, nome, cognome, recapito);
+        elencoPazienti.add(nuovoPaziente);
+
         anagraficaView.getTableModel().addRow(new Object[]{cf, nome, cognome, recapito});
         anagraficaView.getBtnPulisci().doClick();
         JOptionPane.showMessageDialog(anagraficaView.getMainPanel(), "Paziente inserito con successo!");
@@ -430,6 +409,15 @@ public class AdminController {
         }
 
         DefaultTableModel model = anagraficaView.getTableModel();
+        String cfPaziente = (String) model.getValueAt(rigaSelezionata, COL_SSN);
+        for (Paziente p : elencoPazienti) {
+            if (p.getCf().equalsIgnoreCase(cfPaziente)) {
+                p.setNome(nome);
+                p.setCognome(cognome);
+                p.setRecapito(recapito);
+                break;
+            }
+        }
         model.setValueAt(nome,    rigaSelezionata, COL_NOME);
         model.setValueAt(cognome, rigaSelezionata, COL_COGNOME);
         model.setValueAt(recapito, rigaSelezionata, COL_RECAPITO);
@@ -445,6 +433,10 @@ public class AdminController {
                     "Seleziona un paziente da eliminare.", TITOLO_ERRORE, JOptionPane.WARNING_MESSAGE);
             return;
         }
+        DefaultTableModel model = anagraficaView.getTableModel();
+        String cfDaEliminare = (String) model.getValueAt(rigaSelezionata, COL_SSN);
+
+        elencoPazienti.removeIf(p -> p.getCf().equalsIgnoreCase(cfDaEliminare));
         anagraficaView.getTableModel().removeRow(rigaSelezionata);
         anagraficaView.getBtnPulisci().doClick();
     }
@@ -516,9 +508,9 @@ public class AdminController {
     }
 
     private void mostraDettagliPazienteLetto(Letto lettoOccupato) {
-        BackupRicoveroMemoria ricovero = elencoRicoveri.stream()
-                .filter(r -> r.lettoAssegnato != null &&
-                        r.lettoAssegnato.getCodiceInventario()
+        Ricovero ricovero = elencoRicoveri.stream()
+                .filter(r -> r.getLettoAssegnato() != null &&
+                        r.getLettoAssegnato().getCodiceInventario()
                                 .equals(lettoOccupato.getCodiceInventario()))
                 .findFirst()
                 .orElse(null);
@@ -530,14 +522,13 @@ public class AdminController {
             return;
         }
 
-        String[] nomeCognome = cercaNomeCognomeBySsn(ricovero.ssn);
-        String dataInizio    = formatData(ricovero.dataRicovero);
-        String dataFine      = formatData(ricovero.dataDimissionePrevista);
-
+        String[] nomeCognome = cercaNomeCognomeBySsn(ricovero.getSsn());
+        String dataInizio    = formatData(ricovero.getDataRicovero());
+        String dataFine      = formatData(ricovero.getDataDimissionePrevista());
         String messaggio = "Dettagli Ricovero:\n\n"
                 + "Letto: "               + lettoOccupato.getCodiceInventario() + "\n"
                 + "Paziente: "            + nomeCognome[0] + " " + nomeCognome[1] + "\n"
-                + "SSN: "                 + ricovero.ssn + "\n"
+                + "SSN: "                 + ricovero.getSsn() + "\n"
                 + "Data Ricovero: "       + dataInizio + "\n"
                 + "Dimissione Prevista: " + dataFine;
 
@@ -556,36 +547,36 @@ public class AdminController {
 
         Calendar cal = Calendar.getInstance();
 
-        for (BackupRicoveroMemoria ricovero : elencoRicoveri) {
-            String[] nomeCognome = cercaNomeCognomeBySsn(ricovero.ssn);
+        for (Ricovero ricovero : elencoRicoveri) {
+            String[] nomeCognome = cercaNomeCognomeBySsn(ricovero.getSsn());
 
             String annoStr    = "-";
-            if (ricovero.dataRicovero != null) {
-                cal.setTime(ricovero.dataRicovero);
+            if (ricovero.getDataRicovero() != null) {
+                cal.setTime(ricovero.getDataRicovero());
                 annoStr = String.valueOf(cal.get(Calendar.YEAR));
             }
 
-            String stato      = ricovero.inCorso ? "In Corso" : "Dimesso";
-            String dataEntrata = formatData(ricovero.dataRicovero);
+            String stato      = ricovero.isInCorso() ? "In Corso" : "Dimesso";
+            String dataEntrata = formatData(ricovero.getDataRicovero());
             String dataUscita;
-            if (ricovero.inCorso) {
-                dataUscita = "(Prevista: " + formatData(ricovero.dataDimissionePrevista) + ")";
+            if (ricovero.isInCorso()) {
+                dataUscita = "(Prevista: " + formatData(ricovero.getDataDimissionePrevista()) + ")";
             } else {
-                dataUscita = formatData(ricovero.dataDimissioneEffettiva);
+                dataUscita = formatData(ricovero.getDataDimissioneEffettiva());
             }
 
             tableModelRicoveri.addRow(new Object[]{
-                    annoStr, stato, ricovero.ssn, dataEntrata,
-                    dataUscita, ricovero.diagnosiEntrata, ricovero.diagnosiUscita
+                    annoStr, stato, ricovero.getSsn(), dataEntrata,
+                    dataUscita, ricovero.getDiagnosiEntrata(), ricovero.getDiagnosiUscita()
             });
 
-            if (ricovero.inCorso) {
-                String infoLetto    = ricovero.lettoAssegnato != null
-                        ? ricovero.lettoAssegnato.getCodiceInventario() : "-";
+            if (ricovero.isInCorso()) {
+                String infoLetto    = ricovero.getLettoAssegnato() != null
+                        ? ricovero.getLettoAssegnato().getCodiceInventario() : "-";
                 String nomeReparto  = trovaNomeReparto(infoLetto);
 
                 tableModelDimissioni.addRow(new Object[]{
-                        ricovero.ssn, nomeCognome[0], nomeCognome[1],
+                        ricovero.getSsn(), nomeCognome[0], nomeCognome[1],
                         nomeReparto, infoLetto, "Da assegnare", dataUscita
                 });
             }
@@ -601,40 +592,26 @@ public class AdminController {
     }
 
     private String[] cercaNomeCognomeBySsn(String ssn) {
-        if (anagraficaView == null || anagraficaView.getTableModel() == null) {
-            return new String[]{"N/D", "N/D"};
-        }
-        DefaultTableModel model = anagraficaView.getTableModel();
-        for (int i = 0; i < model.getRowCount(); i++) {
-            Object val = model.getValueAt(i, COL_SSN);
-            if (val != null && val.toString().equalsIgnoreCase(ssn)) {
-                return new String[]{
-                        (String) model.getValueAt(i, COL_NOME),
-                        (String) model.getValueAt(i, COL_COGNOME)
-                };
+        for (Paziente p : elencoPazienti) {
+            if (p.getCf().equalsIgnoreCase(ssn)) {
+                return new String[]{p.getNome(), p.getCognome()};
             }
         }
         return new String[]{"Non registrato in anagrafica", ""};
     }
 
     private boolean ssnEsisteInAnagrafica(String ssn) {
-        if (anagraficaView == null || anagraficaView.getTableModel() == null) return false;
-        DefaultTableModel model = anagraficaView.getTableModel();
-        for (int i = 0; i < model.getRowCount(); i++) {
-            Object val = model.getValueAt(i, COL_SSN);
-            if (val != null && val.toString().equalsIgnoreCase(ssn)) return true;
-        }
-        return false;
+       return elencoPazienti.stream().anyMatch(p -> p.getCf().equalsIgnoreCase(ssn));
     }
 
     private boolean pazienteGiaRicoverato(String ssn) {
         return elencoRicoveri.stream()
-                .anyMatch(r -> r.inCorso && r.ssn.equalsIgnoreCase(ssn));
+                .anyMatch(r -> r.isInCorso() && r.getSsn().equalsIgnoreCase(ssn));
     }
 
-    private BackupRicoveroMemoria trovaRicoveroAttivo(String ssn) {
+    private Ricovero trovaRicoveroAttivo(String ssn) {
         return elencoRicoveri.stream()
-                .filter(r -> r.inCorso && r.ssn.equalsIgnoreCase(ssn))
+                .filter(r -> r.isInCorso() && r.getSsn() .equalsIgnoreCase(ssn))
                 .findFirst()
                 .orElse(null);
     }

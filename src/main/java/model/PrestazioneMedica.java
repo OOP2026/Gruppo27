@@ -12,6 +12,7 @@ public class PrestazioneMedica {
         this.dataOra = dataora;
         this.esito = esito;
         this.tipo = tipo;
+
     }
 
     public void setEsito(String esito) { this.esito = esito;}
