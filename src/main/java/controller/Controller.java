@@ -6,58 +6,93 @@ import gui.Login;
 import model.Amministratore;
 import model.Medico;
 import model.Utente;
+
 import javax.swing.*;
-import java.awt.*;
+import java.awt.Frame; // Aggiunto import per risolvere l'avviso di MAXIMIZED_BOTH
+import java.util.ArrayList;
+import java.util.List;
 
 public class Controller {
 	private Login view;
 	private JFrame mainFrame;
 
-	private Utente autentica(String u, String p) {
-		Medico m = new Medico("medico", "pass", "Francesco", "Giordano");
-		Amministratore a = new Amministratore("admin", "pass");
-		if (m.login(u, p)) return m;
-		if (a.login(u, p)) return a;
-		return null;
-	}
+	private final List<Utente> databaseUtentiMock;
 
 	public Controller(Login view, JFrame mainFrame) {
 		this.view = view;
 		this.mainFrame = mainFrame;
-		this.mainFrame.getRootPane().setDefaultButton(this.view.getLoginButton());
 
-		this.view.getLoginButton().addActionListener(e -> {
-			String u = view.getUsername();
-			String p = view.getPassword();
-			Utente utente = autentica(u, p);
+		this.databaseUtentiMock = new ArrayList<>();
+		this.databaseUtentiMock.add(new Medico("medico", "pass", "Francesco", "Giordano"));
+		this.databaseUtentiMock.add(new Amministratore("admin", "pass"));
 
-			if (utente != null) {
-				if (utente instanceof Medico) {
-					apriMedico((Medico) utente);
-				} else if (utente instanceof Amministratore) {
-					apriAmministratore((Amministratore) utente);
+		this.view.setLoginListener(e -> gestisciLogin());
+		this.view.setEnterListener(e -> gestisciLogin());
+
+		this.mainFrame.setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
+
+		this.mainFrame.addWindowListener(new java.awt.event.WindowAdapter() {
+			@Override
+			public void windowClosing(java.awt.event.WindowEvent e) {
+				int scelta = JOptionPane.showConfirmDialog(
+						mainFrame,
+						"Sei sicuro di voler uscire?",
+						"Conferma Uscita",
+						JOptionPane.YES_NO_OPTION,
+						JOptionPane.QUESTION_MESSAGE
+				);
+				if (scelta == JOptionPane.YES_OPTION) {
+					System.exit(0);
 				}
-			} else {
-				JOptionPane.showMessageDialog(mainFrame, "Credenziali errate.", "Errore Login", JOptionPane.ERROR_MESSAGE);
 			}
 		});
+
 	}
 
-	private void apriMedico(Medico m) {
-		InterfacciaMedico gui = new InterfacciaMedico();
-		new MedicoController(gui, m, mainFrame);
-		cambiaSchermata(gui.getPanelMedico(), "Dashboard Medico");
+	private void gestisciLogin() {
+		String u = view.getUsername();
+		String p = view.getPassword();
+		Utente utenteLoggato = autentica(u, p);
+
+		if (utenteLoggato != null) {
+			instradaUtente(utenteLoggato);
+		} else {
+			JOptionPane.showMessageDialog(mainFrame, "Credenziali errate.", "Errore Login", JOptionPane.ERROR_MESSAGE);
+		}
 	}
 
-	private void apriAmministratore(Amministratore a) {
-		InterfacciaAmministratore gui = new InterfacciaAmministratore();
-		new AdminController(gui, a, mainFrame);
-		cambiaSchermata(gui.getPanelAmministratore(), "Dashboard Amministratore");
+	private Utente autentica(String username, String password) {
+
+		for (Utente utente : databaseUtentiMock) {
+			if (utente.login(username, password)) {
+				return utente;
+			}
+		}
+		return null;
 	}
+
+	private void instradaUtente(Utente utente) {
+
+		if (utente instanceof Medico medico) {
+			InterfacciaMedico gui = new InterfacciaMedico();
+
+			new MedicoController(gui, medico, mainFrame);
+
+			cambiaSchermata(gui.getPanelMedico(), "Dashboard Medico - " + medico.getCognome());
+
+		} else if (utente instanceof Amministratore amministratore) {
+			InterfacciaAmministratore gui = new InterfacciaAmministratore();
+
+			new AdminController(gui, amministratore, mainFrame);
+
+			cambiaSchermata(gui.getPanelAmministratore(), "Dashboard Amministratore");
+		}
+	}
+
 	private void cambiaSchermata(JPanel nuovoPanel, String titolo) {
 		mainFrame.setTitle(titolo);
 		mainFrame.setContentPane(nuovoPanel);
-		mainFrame.setExtendedState(JFrame.MAXIMIZED_BOTH);
+		mainFrame.setExtendedState(Frame.MAXIMIZED_BOTH);
 		mainFrame.revalidate();
 		mainFrame.repaint();
 		mainFrame.setResizable(true);

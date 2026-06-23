@@ -5,7 +5,7 @@ import gui.Login;
 import javax.swing.*;
 
 public class TestModel {
-	public static void main(String[] args) {
+	 static void main() {
 		SwingUtilities.invokeLater(() -> {
 			JFrame mainFrame = new JFrame("Login");
 			mainFrame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);

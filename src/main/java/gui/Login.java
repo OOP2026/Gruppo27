@@ -1,6 +1,7 @@
 package gui;
 
 import javax.swing.*;
+import java.awt.event.ActionListener;
 
 public class Login {
     // Lasciamo i componenti privati per incapsulamento
@@ -33,5 +34,12 @@ public class Login {
 
     private void createUIComponents() {
         panel1 = new PanelImmagine("/logoFMAB.png");
+    }
+
+    public void setLoginListener(ActionListener listener) {
+        loginButton.addActionListener(listener);
+    }
+    public void setEnterListener(ActionListener listener) {
+        passwordField1.addActionListener(listener);
     }
 }
