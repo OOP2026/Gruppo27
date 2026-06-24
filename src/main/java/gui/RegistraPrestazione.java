@@ -17,6 +17,7 @@ public class RegistraPrestazione extends JDialog {
     private JComboBox<String> tipoPrestazioneBox;
     private JTextArea EsitoPrestazione;
     private JPanel mainPrestazione;
+    private JTextField ssnField;
     private JDateChooser dateChooserPrestazione;
     private JComboBox<String> oraBox;
 
