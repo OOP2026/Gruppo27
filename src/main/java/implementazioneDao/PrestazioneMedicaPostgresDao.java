@@ -18,7 +18,7 @@ public class PrestazioneMedicaPostgresDao implements PrestazioneMedicaDAO {
     @Override
     public List<PrestazioneMedica> findByMedico(String medicoLogin) {
         List<PrestazioneMedica> prestazioni = new ArrayList<>();
-        String sql = "SELECT tipo, data_ora, esito, ssn_paziente FROM prestazioni_mediche WHERE medico_login = ?";
+        String sql = "SELECT tipo, data_ora, esito, ssn_paziente, descrizione FROM prestazioni_mediche WHERE medico_login = ?";
         Connection conn = ConnessioneDatabase.getInstance();
 
         try (PreparedStatement stmt = conn.prepareStatement(sql)) {
@@ -33,6 +33,7 @@ public class PrestazioneMedicaPostgresDao implements PrestazioneMedicaDAO {
                             rs.getString("esito")
                     );
                     prestazione.setSsnPaziente(rs.getString("ssn_paziente"));
+                    prestazione.setDescrizione(rs.getString("descrizione"));
                     prestazioni.add(prestazione);
                 }
             }
@@ -65,7 +66,7 @@ public class PrestazioneMedicaPostgresDao implements PrestazioneMedicaDAO {
 
     @Override
     public void save(PrestazioneMedica prestazione, String medicoLogin) {
-        String sql = "INSERT INTO prestazioni_mediche (medico_login, ssn_paziente, tipo, data_ora, esito) VALUES (?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO prestazioni_mediche (medico_login, ssn_paziente, tipo, data_ora, descrizione, esito) VALUES (?, ?, ?, ?, ?, ?)";
         Connection conn = ConnessioneDatabase.getInstance();
 
         try (PreparedStatement stmt = conn.prepareStatement(sql)) {
@@ -73,7 +74,8 @@ public class PrestazioneMedicaPostgresDao implements PrestazioneMedicaDAO {
             stmt.setString(2, prestazione.getSsnPaziente());
             stmt.setString(3, prestazione.getTipo().name());
             stmt.setTimestamp(4, Timestamp.valueOf(prestazione.getDataOra()));
-            stmt.setString(5, prestazione.getEsito());
+            stmt.setString(5, prestazione.getDescrizione());
+            stmt.setString(6, prestazione.getEsito());
 
             stmt.executeUpdate();
         } catch (SQLException e) {

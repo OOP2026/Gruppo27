@@ -50,8 +50,8 @@ public class RicoveroPostgresDao implements RicoveroDAO {
 
     @Override
     public void save(Ricovero ricovero) {
-        String sql = "INSERT INTO ricoveri (ssn, data_ricovero, data_dimissione_prevista, letto_codice, diagnosi_entrata, diagnosi_uscita, in_corso) "
-                + "VALUES (?, ?, ?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO ricoveri (ssn, data_ricovero, data_dimissione_prevista, letto_codice, day_hospital, descrizione, terapia, diagnosi_entrata, diagnosi_uscita, in_corso) "
+                + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
         Connection conn = ConnessioneDatabase.getInstance();
 
         try (PreparedStatement stmt = conn.prepareStatement(sql)) {
@@ -62,9 +62,12 @@ public class RicoveroPostgresDao implements RicoveroDAO {
             Letto letto = ricovero.getLettoAssegnato();
             stmt.setString(4, letto != null ? letto.getCodiceInventario() : null);
 
-            stmt.setString(5, ricovero.getDiagnosiEntrata());
-            stmt.setString(6, ricovero.getDiagnosiUscita());
-            stmt.setBoolean(7, ricovero.isInCorso());
+            stmt.setBoolean(5, ricovero.isDayHospital());
+            stmt.setString(6, ricovero.getDescrizione());
+            stmt.setString(7, ricovero.getTerapia());
+            stmt.setString(8, ricovero.getDiagnosiEntrata());
+            stmt.setString(9, ricovero.getDiagnosiUscita());
+            stmt.setBoolean(10, ricovero.isInCorso());
 
             stmt.executeUpdate();
         } catch (SQLException e) {
@@ -75,7 +78,7 @@ public class RicoveroPostgresDao implements RicoveroDAO {
     @Override
     public void update(Ricovero ricovero) {
         String sql = "UPDATE ricoveri SET data_dimissione_prevista = ?, data_dimissione_effettiva = ?, "
-                + "letto_codice = ?, diagnosi_entrata = ?, diagnosi_uscita = ?, in_corso = ? "
+                + "letto_codice = ?, day_hospital = ?, descrizione = ?, terapia = ?, diagnosi_entrata = ?, diagnosi_uscita = ?, in_corso = ? "
                 + "WHERE ssn = ? AND data_ricovero = ?";
         Connection conn = ConnessioneDatabase.getInstance();
 
@@ -86,11 +89,14 @@ public class RicoveroPostgresDao implements RicoveroDAO {
             Letto letto = ricovero.getLettoAssegnato();
             stmt.setString(3, letto != null ? letto.getCodiceInventario() : null);
 
-            stmt.setString(4, ricovero.getDiagnosiEntrata());
-            stmt.setString(5, ricovero.getDiagnosiUscita());
-            stmt.setBoolean(6, ricovero.isInCorso());
-            stmt.setString(7, ricovero.getSsn());
-            stmt.setTimestamp(8, new Timestamp(ricovero.getDataRicovero().getTime()));
+            stmt.setBoolean(4, ricovero.isDayHospital());
+            stmt.setString(5, ricovero.getDescrizione());
+            stmt.setString(6, ricovero.getTerapia());
+            stmt.setString(7, ricovero.getDiagnosiEntrata());
+            stmt.setString(8, ricovero.getDiagnosiUscita());
+            stmt.setBoolean(9, ricovero.isInCorso());
+            stmt.setString(10, ricovero.getSsn());
+            stmt.setTimestamp(11, new Timestamp(ricovero.getDataRicovero().getTime()));
 
             int righeAggiornate = stmt.executeUpdate();
             if (righeAggiornate == 0) {
@@ -125,6 +131,9 @@ public class RicoveroPostgresDao implements RicoveroDAO {
         ricovero.setDataDimissioneEffettiva(rs.getTimestamp("data_dimissione_effettiva"));
         ricovero.setDiagnosiUscita(rs.getString("diagnosi_uscita"));
         ricovero.setInCorso(rs.getBoolean("in_corso"));
+        ricovero.setDayHospital(rs.getBoolean("day_hospital"));
+        ricovero.setDescrizione(rs.getString("descrizione"));
+        ricovero.setTerapia(rs.getString("terapia"));
 
         return ricovero;
     }

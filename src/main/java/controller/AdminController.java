@@ -336,6 +336,8 @@ public class AdminController {
                 lettoScelto,
                 diagnosiEntrata
         );
+        nuovoRicovero.setDayHospital(dialogRicovero.isDayHospital());
+        nuovoRicovero.setDescrizione(dialogRicovero.getDescrizione());
 
         ricoveroDAO.save(nuovoRicovero);
         elencoRicoveri.add(nuovoRicovero);
@@ -380,10 +382,13 @@ public class AdminController {
 
         // Read diagnosis silently from the form — no popup
         String diagnosiUscita = normalizeDiagnosi(dialogDimissione.getDiagnosiUscita());
+        String terapia = dialogDimissione.getTerapia();
+        Date dataDimissioneScelta = dialogDimissione.getDimissioneEffettiva().getDate();
 
         ricovero.setInCorso(false);
         ricovero.setDiagnosiUscita(diagnosiUscita);
-        ricovero.setDataDimissioneEffettiva(new Date());
+        ricovero.setTerapia(terapia);
+        ricovero.setDataDimissioneEffettiva(dataDimissioneScelta != null ? dataDimissioneScelta : new Date());
 
         Letto lettoDaLiberare = ricovero.getLettoAssegnato();
 
@@ -603,12 +608,19 @@ public class AdminController {
         String[] nomeCognome = cercaNomeCognomeBySsn(ricovero.getSsn());
         String dataInizio    = formatData(ricovero.getDataRicovero());
         String dataFine      = formatData(ricovero.getDataDimissionePrevista());
+        String tipoRicovero  = ricovero.isDayHospital() ? "Day Hospital" : "Ricovero ordinario";
+        String descrizione   = (ricovero.getDescrizione() == null || ricovero.getDescrizione().isBlank())
+                ? "-" : ricovero.getDescrizione();
+
         String messaggio = "Dettagli Ricovero:\n\n"
                 + "Letto: "               + lettoOccupato.getCodiceInventario() + "\n"
                 + "Paziente: "            + nomeCognome[0] + " " + nomeCognome[1] + "\n"
                 + "SSN: "                 + ricovero.getSsn() + "\n"
+                + "Tipo: "                + tipoRicovero + "\n"
                 + "Data Ricovero: "       + dataInizio + "\n"
-                + "Dimissione Prevista: " + dataFine;
+                + "Dimissione Prevista: " + dataFine + "\n"
+                + "Diagnosi: "            + ricovero.getDiagnosiEntrata() + "\n"
+                + "Note: "                + descrizione;
 
         JOptionPane.showMessageDialog(mainFrame, messaggio,
                 "Info Paziente - Letto " + lettoOccupato.getCodiceInventario(),

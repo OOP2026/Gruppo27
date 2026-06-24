@@ -8,6 +8,7 @@ public class PrestazioneMedica {
     private LocalDateTime dataOra;
     private String esito;
     private String ssnPaziente;
+    private String descrizione;
 
     public PrestazioneMedica(Prestazione tipo, LocalDateTime dataora, String esito) {
         this.dataOra = dataora;
@@ -27,4 +28,7 @@ public class PrestazioneMedica {
 
     public void setSsnPaziente(String ssnPaziente){ this.ssnPaziente = ssnPaziente; }
     public String getSsnPaziente(){ return ssnPaziente; }
+
+    public void setDescrizione(String descrizione){ this.descrizione = descrizione; }
+    public String getDescrizione(){ return descrizione; }
 }

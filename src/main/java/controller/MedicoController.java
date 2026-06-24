@@ -229,6 +229,7 @@ public class MedicoController {
                             PrestazioneMedica.Prestazione.VISITA : PrestazioneMedica.Prestazione.INTERVENTO_CHIRURGICO;
                     // Creazione dell'oggetto e inserimento nel Model, nel DB e nella lista locale
                     PrestazioneMedica nuovaPrestazione = new PrestazioneMedica(tipoEnum, orarioScelto, esito);
+                    nuovaPrestazione.setDescrizione(dialog.getDescrizioneInput());
                     // TODO: il form RegistraPrestazione non ha ancora un campo per l'SSN del paziente.
                     // Una volta aggiunto (es. dialog.getSsnPaziente()), va richiamato qui:
                     // nuovaPrestazione.setSsnPaziente(dialog.getSsnPaziente());
