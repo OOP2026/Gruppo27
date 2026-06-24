@@ -1,5 +1,7 @@
 package model;
 
+import util.PasswordHasher;
+
 public class Utente {
     private String login;
     private String password;
@@ -10,6 +12,14 @@ public class Utente {
     }
 
     public boolean login(String login, String password) {
-        return ( login.equals(this.login) && password.equals(this.password));
+        return (login.equals(this.login) && PasswordHasher.verifica(password, this.password));
+    }
+
+    public String getLogin() {
+        return login;
+    }
+
+    public String getPassword() {
+        return password;
     }
 }
