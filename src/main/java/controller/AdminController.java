@@ -1,10 +1,20 @@
 package controller;
 
+import dao.LettoDAO;
+import dao.PazienteDAO;
+import dao.PrestazioneMedicaDAO;
+import dao.RepartoDAO;
+import dao.RicoveroDAO;
 import gui.InterfacciaAmministratore;
 import gui.RegistraDimissione;
 import gui.RegistraRicovero;
 import gui.GestioneAnagraficaPazienti;
 import gui.GestioneLetti;
+import implementazioneDao.LettoPostgresDao;
+import implementazioneDao.PazientePostgresDao;
+import implementazioneDao.PrestazioneMedicaPostgresDao;
+import implementazioneDao.RepartoPostgresDao;
+import implementazioneDao.RicoveroPostgresDao;
 
 import model.*;
 import model.Ricovero;
@@ -51,8 +61,14 @@ public class AdminController {
     private final Amministratore                  admin;
     private final JFrame                          mainFrame;
     private final List<Reparto>                   listaReparti;
-    private final List<Ricovero> elencoRicoveri = new ArrayList<>();
-    private final List<Paziente> elencoPazienti = new ArrayList<>();
+
+    private final PazienteDAO pazienteDAO;
+    private final RicoveroDAO ricoveroDAO;
+    private final LettoDAO lettoDAO;
+    private final PrestazioneMedicaDAO prestazioneMedicaDAO;
+
+    private final List<Ricovero> elencoRicoveri;
+    private final List<Paziente> elencoPazienti;
 
     private GestioneAnagraficaPazienti anagraficaView;
     private GestioneLetti              gestioneLettiView;
@@ -64,7 +80,19 @@ public class AdminController {
         this.view        = view;
         this.admin       = admin;
         this.mainFrame   = mainFrame;
-        this.listaReparti = generaDatiOspedale();
+
+        RepartoDAO repartoDAO = new RepartoPostgresDao();
+        this.pazienteDAO = new PazientePostgresDao();
+        this.ricoveroDAO = new RicoveroPostgresDao();
+        this.lettoDAO = new LettoPostgresDao();
+        this.prestazioneMedicaDAO = new PrestazioneMedicaPostgresDao();
+
+        this.listaReparti = repartoDAO.findAll();
+        this.elencoPazienti = new ArrayList<>(pazienteDAO.findAll());
+        this.elencoRicoveri = new ArrayList<>();
+        for (Paziente paziente : elencoPazienti) {
+            elencoRicoveri.addAll(ricoveroDAO.findByPaziente(paziente.getCf()));
+        }
 
         inizializzaAnagrafica();
         inizializzaGestioneLetti();
@@ -283,6 +311,7 @@ public class AdminController {
         Letto lettoScelto = dialogRicovero.getLettoSelezionato();
         if (lettoScelto != null) {
             lettoScelto.setStatoAttuale(false);
+            lettoDAO.updateStato(lettoScelto.getCodiceInventario(), false);
         }
 
         Ricovero nuovoRicovero = new Ricovero(
@@ -293,6 +322,7 @@ public class AdminController {
                 diagnosiEntrata
         );
 
+        ricoveroDAO.save(nuovoRicovero);
         elencoRicoveri.add(nuovoRicovero);
         aggiornaTabelle();
         aggiornaMappaCorrente();
@@ -334,8 +364,13 @@ public class AdminController {
         ricovero.setDiagnosiUscita(diagnosiUscita);
         ricovero.setDataDimissioneEffettiva(new Date());
 
-        if (ricovero.getLettoAssegnato() != null) {
-            ricovero.getLettoAssegnato().setStatoAttuale(true);
+        Letto lettoDaLiberare = ricovero.getLettoAssegnato();
+
+        ricoveroDAO.update(ricovero);
+
+        if (lettoDaLiberare != null) {
+            lettoDaLiberare.setStatoAttuale(true);
+            lettoDAO.updateStato(lettoDaLiberare.getCodiceInventario(), true);
             ricovero.setLettoAssegnato(null);
         }
 
@@ -383,6 +418,7 @@ public class AdminController {
         }
 
         Paziente nuovoPaziente = new Paziente(cf, nome, cognome, recapito);
+        pazienteDAO.save(nuovoPaziente);
         elencoPazienti.add(nuovoPaziente);
 
         anagraficaView.getTableModel().addRow(new Object[]{cf, nome, cognome, recapito});
@@ -415,6 +451,7 @@ public class AdminController {
                 p.setNome(nome);
                 p.setCognome(cognome);
                 p.setRecapito(recapito);
+                pazienteDAO.update(p);
                 break;
             }
         }
@@ -436,6 +473,17 @@ public class AdminController {
         DefaultTableModel model = anagraficaView.getTableModel();
         String cfDaEliminare = (String) model.getValueAt(rigaSelezionata, COL_SSN);
 
+        boolean haStoricoClinico = elencoRicoveri.stream()
+                .anyMatch(r -> r.getSsn().equalsIgnoreCase(cfDaEliminare));
+
+        if (haStoricoClinico) {
+            JOptionPane.showMessageDialog(anagraficaView.getMainPanel(),
+                    "Impossibile eliminare: il paziente ha uno storico di ricoveri registrato nel sistema.",
+                    TITOLO_ERRORE, JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        pazienteDAO.delete(cfDaEliminare);
         elencoPazienti.removeIf(p -> p.getCf().equalsIgnoreCase(cfDaEliminare));
         anagraficaView.getTableModel().removeRow(rigaSelezionata);
         anagraficaView.getBtnPulisci().doClick();
@@ -574,10 +622,12 @@ public class AdminController {
                 String infoLetto    = ricovero.getLettoAssegnato() != null
                         ? ricovero.getLettoAssegnato().getCodiceInventario() : "-";
                 String nomeReparto  = trovaNomeReparto(infoLetto);
+                String medicoAssegnato = prestazioneMedicaDAO.findMedicoAssegnato(ricovero.getSsn())
+                        .orElse("Da assegnare");
 
                 tableModelDimissioni.addRow(new Object[]{
                         ricovero.getSsn(), nomeCognome[0], nomeCognome[1],
-                        nomeReparto, infoLetto, "Da assegnare", dataUscita
+                        nomeReparto, infoLetto, medicoAssegnato, dataUscita
                 });
             }
         }
@@ -636,61 +686,6 @@ public class AdminController {
 
     private String normalizeDiagnosi(String diagnosi) {
         return (diagnosi == null || diagnosi.trim().isEmpty()) ? "Non specificata" : diagnosi.trim();
-    }
-
-    // =========================================================================
-    // Dati ospedale fittizio (no db)
-    // =========================================================================
-
-    private List<Reparto> generaDatiOspedale() {
-        List<Reparto> reparti = new ArrayList<>();
-
-        reparti.add(creaReparto(10, "Cardiologia",
-                creaStanza(101,  "L1", "L2", "L22"),
-                creaStanza(111,  "L1", "L2", "L22"),
-                creaStanza(1011, "L1", "L2", "L22")));
-
-        reparti.add(creaReparto(20, "Chirurgia",
-                creaStanza(201, "L3", "L4")));
-
-        reparti.add(creaReparto(30, "Pediatria",
-                creaStanza(301, "L5", "L6")));
-
-        reparti.add(creaReparto(40, "Ortopedia",
-                creaStanza(401, "L7", "L8")));
-
-        reparti.add(creaReparto(50, "Neurologia",
-                creaStanza(501, "L9", "L10")));
-
-        reparti.add(creaReparto(60, "Oncologia",
-                creaStanza(601, "L12", "L13")));
-
-        reparti.add(creaReparto(70, "Ginecologia",
-                creaStanza(701, "L14", "L15")));
-
-        reparti.add(creaReparto(80, "Terapia Intensiva",
-                creaStanza(801, "L16", "L17")));
-
-        reparti.add(creaReparto(90, "Psichiatria",
-                creaStanza(901, "L18", "L19")));
-
-        return reparti;
-    }
-
-    private Reparto creaReparto(int id, String nome, Stanza... stanze) {
-        Reparto reparto = new Reparto(id, nome);
-        for (Stanza s : stanze) {
-            reparto.aggiungiStanza(s);
-        }
-        return reparto;
-    }
-
-    private Stanza creaStanza(int numero, String... codiciBed) {
-        Stanza stanza = new Stanza(numero);
-        for (String codice : codiciBed) {
-            stanza.aggiungiLetto(new Letto(codice, true));
-        }
-        return stanza;
     }
 
     //Classe per forzare SSN MAIUSC

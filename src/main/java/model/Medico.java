@@ -38,6 +38,12 @@ public class Medico extends Utente {
     public void setCognome(String cognome){
         this.cognome = cognome;
     }
+    public boolean isDisponibile(){
+        return disponibile;
+    }
+    public void setDisponibile(boolean disponibile){
+        this.disponibile = disponibile;
+    }
 
     public boolean isPrestazioneValid(LocalDateTime dataPrestazione) {
         for (TurnoLavorativo turno : this.turni) {

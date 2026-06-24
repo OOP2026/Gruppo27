@@ -1,7 +1,11 @@
 package controller;
 
+import dao.PrestazioneMedicaDAO;
+import dao.TurnoLavorativoDAO;
 import gui.InterfacciaMedico;
 import gui.RegistraPrestazione;
+import implementazioneDao.PrestazioneMedicaPostgresDao;
+import implementazioneDao.TurnoLavorativoPostgresDao;
 import model.Medico;
 import model.TurnoLavorativo;
 import model.PrestazioneMedica;
@@ -27,6 +31,9 @@ public class MedicoController {
     private final JFrame mainFrame;
     private LocalDate datagiornaliera;
 
+    private final TurnoLavorativoDAO turnoLavorativoDAO;
+    private final PrestazioneMedicaDAO prestazioneMedicaDAO;
+
     private DefaultTableModel modelGiornaliero;
     private DefaultTableModel modelSettimanale;
     private List<PrestazioneMedica> prestazioniRegistrate;
@@ -39,12 +46,14 @@ public class MedicoController {
         this.model = model;
         this.mainFrame = mainFrame;
         this.datagiornaliera = LocalDate.now();
-        this.prestazioniRegistrate = new ArrayList<>();
+
+        this.turnoLavorativoDAO = new TurnoLavorativoPostgresDao();
+        this.prestazioneMedicaDAO = new PrestazioneMedicaPostgresDao();
 
         this.view.setBenvenuto("Benvenuto Dott. " + model.getCognome());
 
-        // Caricamento dei turni di prova (Enum-based)
-        generaTurniFintiPerTest();
+        caricaTurniDelMedico();
+        this.prestazioniRegistrate = new ArrayList<>(prestazioneMedicaDAO.findByMedico(model.getLogin()));
 
         inizializzaTabelle();
         caricaAgendaGiornaliera();
@@ -218,9 +227,15 @@ public class MedicoController {
                     // Mappiamo la stringa nell'Enum corretto
                     PrestazioneMedica.Prestazione tipoEnum = tipoScelto.equals("VISITA") ?
                             PrestazioneMedica.Prestazione.VISITA : PrestazioneMedica.Prestazione.INTERVENTO_CHIRURGICO;
-                    // Creazione dell'oggetto e inserimento nel Model e nella lista locale
+                    // Creazione dell'oggetto e inserimento nel Model, nel DB e nella lista locale
                     PrestazioneMedica nuovaPrestazione = new PrestazioneMedica(tipoEnum, orarioScelto, esito);
+                    // TODO: il form RegistraPrestazione non ha ancora un campo per l'SSN del paziente.
+                    // Una volta aggiunto (es. dialog.getSsnPaziente()), va richiamato qui:
+                    // nuovaPrestazione.setSsnPaziente(dialog.getSsnPaziente());
+                    // Senza questo collegamento, la prestazione viene salvata con ssn_paziente = NULL
+                    // e non contribuirà a determinare il "medico assegnato" nella vista dimissioni dell'admin.
                     model.registraPrestazione(nuovaPrestazione);
+                    prestazioneMedicaDAO.save(nuovaPrestazione, model.getLogin());
                     prestazioniRegistrate.add(nuovaPrestazione);
                     // Ricarichiamo ed aggiorniamo al volo le tabelle della schermata principale
                     caricaAgendaGiornaliera();
@@ -354,8 +369,9 @@ public class MedicoController {
             );
             // Se l'utente non ha premuto annulla e non ha lasciato il campo vuoto
             if (nuovoEsito != null && !nuovoEsito.trim().isEmpty()) {
-                // Aggiorna l'esito direttamente sull'oggetto PrestazioneMedica
+                // Aggiorna l'esito direttamente sull'oggetto PrestazioneMedica e nel DB
                 p.setEsito(nuovoEsito.trim());
+                prestazioneMedicaDAO.updateEsito(p, model.getLogin());
                 // Ricarica i dati grafici per mostrare eventuali variazioni istantanee nelle tabelle
                 caricaAgendaGiornaliera();
                 caricaAgendaSettimanale();
@@ -365,15 +381,10 @@ public class MedicoController {
         }
     }
 
-    private void generaTurniFintiPerTest() {
-        LocalDate oggi = LocalDate.now();
-        LocalDate lunedi = oggi.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
-
-        model.aggiungiTurno(new TurnoLavorativo(TurnoLavorativo.GiornoSettimana.LUNEDI, LocalDateTime.of(lunedi, LocalTime.of(8, 0)), LocalDateTime.of(lunedi, LocalTime.of(14, 0))));
-
-        model.aggiungiTurno(new TurnoLavorativo(TurnoLavorativo.GiornoSettimana.MARTEDI, LocalDateTime.of(lunedi.plusDays(1), LocalTime.of(14, 0)), LocalDateTime.of(lunedi.plusDays(1), LocalTime.of(20, 0))));
-
-        model.aggiungiTurno(new TurnoLavorativo(TurnoLavorativo.GiornoSettimana.VENERDI, LocalDateTime.of(lunedi.plusDays(4), LocalTime.of(8, 0)), LocalDateTime.of(lunedi.plusDays(4), LocalTime.of(14, 0))));
+    private void caricaTurniDelMedico() {
+        for (TurnoLavorativo turno : turnoLavorativoDAO.findByMedico(model.getLogin())) {
+            model.aggiungiTurno(turno);
+        }
     }
     private void gestisciLogout() {
         int conferma = JOptionPane.showConfirmDialog(
