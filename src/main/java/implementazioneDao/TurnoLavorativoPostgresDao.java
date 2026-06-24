@@ -68,7 +68,11 @@ public class TurnoLavorativoPostgresDao implements TurnoLavorativoDAO {
             stmt.setTimestamp(3, Timestamp.valueOf(turno.getInizio()));
             stmt.setTimestamp(4, Timestamp.valueOf(turno.getFine()));
 
-            stmt.executeUpdate();
+            int righeEliminate = stmt.executeUpdate();
+            if (righeEliminate == 0) {
+                throw new RuntimeException("Nessun turno trovato per medico=" + medicoLogin
+                        + ", giorno=" + turno.getGiorno() + ": l'eliminazione non ha avuto effetto.");
+            }
         } catch (SQLException e) {
             throw new RuntimeException("Errore durante l'eliminazione del turno del medico " + medicoLogin, e);
         }

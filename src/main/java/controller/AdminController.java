@@ -99,6 +99,8 @@ public class AdminController {
         inizializzaTabella();
         inizializzaAzioni();
         inizializzaFiltriDimissioni();
+        popolaTabellaPazienti();
+        aggiornaTabelle();
     }
 
     // =========================================================================
@@ -242,7 +244,20 @@ public class AdminController {
             sorter.setRowFilter(null);
         });
     }
+    private void popolaTabellaPazienti() {
+        DefaultTableModel model = anagraficaView.getTableModel();
+        model.setRowCount(0); // Azzera per sicurezza
 
+        // Travasa i dati scaricati dal DB nella JTable
+        for (Paziente p : elencoPazienti) {
+            model.addRow(new Object[]{
+                    p.getCf(),
+                    p.getNome(),
+                    p.getCognome(),
+                    p.getRecapito()
+            });
+        }
+    }
     // =========================================================================
     // METODI GESTIONE AZIONI
 
@@ -332,16 +347,22 @@ public class AdminController {
 
     private void gestisciDimissione(JFrame parentFrame) {
         JTable tabellaDimissioni = view.getDimissioniTable();
-        int rigaSelezionata = tabellaDimissioni.getSelectedRow();
+        int rigaSelezionataView = tabellaDimissioni.getSelectedRow();
 
-        if (rigaSelezionata == -1) {
+        if (rigaSelezionataView == -1) {
             JOptionPane.showMessageDialog(parentFrame,
                     "Seleziona un paziente dalla tabella nella scheda 'Dimissione pazienti' per procedere!",
                     "Nessuna selezione", JOptionPane.WARNING_MESSAGE);
             return;
         }
 
-        String ssnSelezionato = normalizeSsn((String) tabellaDimissioni.getValueAt(rigaSelezionata, 0));
+        // IMPORTANTE: la tabella ha un RowSorter (vedi inizializzaFiltriDimissioni), quindi l'indice
+        // di riga selezionato si riferisce alla vista ordinata/filtrata, non al model sottostante.
+        // Va convertito prima di leggere i valori, altrimenti con un ordinamento o filtro attivo
+        // si rischia di leggere i dati di un paziente diverso da quello effettivamente cliccato.
+        int rigaSelezionata = tabellaDimissioni.convertRowIndexToModel(rigaSelezionataView);
+
+        String ssnSelezionato = normalizeSsn((String) tabellaDimissioni.getModel().getValueAt(rigaSelezionata, 0));
         Ricovero ricovero = trovaRicoveroAttivo(ssnSelezionato);
         if (ricovero == null) return;
 
@@ -387,8 +408,12 @@ public class AdminController {
     private void caricaDatiPazienteSelezionato(ListSelectionEvent e) {
         if (e.getValueIsAdjusting()) return;
 
-        int rigaSelezionata = anagraficaView.getTablePazienti().getSelectedRow();
-        if (rigaSelezionata == -1) return;
+        JTable tablePazienti = anagraficaView.getTablePazienti();
+        int rigaSelezionataView = tablePazienti.getSelectedRow();
+        if (rigaSelezionataView == -1) return;
+
+        // Stessa cautela del RowSorter: l'indice va convertito da vista a model.
+        int rigaSelezionata = tablePazienti.convertRowIndexToModel(rigaSelezionataView);
 
         DefaultTableModel model = anagraficaView.getTableModel();
         anagraficaView.getTxtCf()     .setText((String) model.getValueAt(rigaSelezionata, COL_SSN));
@@ -427,12 +452,14 @@ public class AdminController {
     }
 
     private void modificaPaziente() {
-        int rigaSelezionata = anagraficaView.getTablePazienti().getSelectedRow();
-        if (rigaSelezionata == -1) {
+        JTable tablePazienti = anagraficaView.getTablePazienti();
+        int rigaSelezionataView = tablePazienti.getSelectedRow();
+        if (rigaSelezionataView == -1) {
             JOptionPane.showMessageDialog(anagraficaView.getMainPanel(),
                     "Seleziona prima un paziente dalla tabella!", "Nessuna Selezione", JOptionPane.WARNING_MESSAGE);
             return;
         }
+        int rigaSelezionata = tablePazienti.convertRowIndexToModel(rigaSelezionataView);
 
         String nome    = anagraficaView.getTxtNome()    .getText().trim();
         String cognome = anagraficaView.getTxtCognome() .getText().trim();
@@ -464,12 +491,15 @@ public class AdminController {
     }
 
     private void eliminaPaziente() {
-        int rigaSelezionata = anagraficaView.getTablePazienti().getSelectedRow();
-        if (rigaSelezionata == -1) {
+        JTable tablePazienti = anagraficaView.getTablePazienti();
+        int rigaSelezionataView = tablePazienti.getSelectedRow();
+        if (rigaSelezionataView == -1) {
             JOptionPane.showMessageDialog(anagraficaView.getMainPanel(),
                     "Seleziona un paziente da eliminare.", TITOLO_ERRORE, JOptionPane.WARNING_MESSAGE);
             return;
         }
+        int rigaSelezionata = tablePazienti.convertRowIndexToModel(rigaSelezionataView);
+
         DefaultTableModel model = anagraficaView.getTableModel();
         String cfDaEliminare = (String) model.getValueAt(rigaSelezionata, COL_SSN);
 
@@ -651,7 +681,7 @@ public class AdminController {
     }
 
     private boolean ssnEsisteInAnagrafica(String ssn) {
-       return elencoPazienti.stream().anyMatch(p -> p.getCf().equalsIgnoreCase(ssn));
+        return elencoPazienti.stream().anyMatch(p -> p.getCf().equalsIgnoreCase(ssn));
     }
 
     private boolean pazienteGiaRicoverato(String ssn) {
@@ -689,7 +719,7 @@ public class AdminController {
     }
 
     //Classe per forzare SSN MAIUSC
-    
+
     public static final class UpperCaseDocumentFilter extends DocumentFilter {
 
         @Override

@@ -25,3 +25,11 @@ Ad ogni push effettuato tramite interfaccia Web o tramite Github Desktop partono
 I risultati della analisi possono vedersi nei badge in alto. Per approfondire i risultati di SonarCloud è sufficiente cliccare su "scanned on SonarQube".
 Per approfondire i risultati dell'analisi architetturale bisogna andare in Actions, cliccare sul workflow più in alto e poi su Architectural Tests
 
+
+### Environment Variables:
+- **Nome:** `DB_PASSWORD`
+- **Valore:** `ProgettoOOPGruppo27`
+
+### Credenziali di Test per l'Accesso:
+- **Amministratore:** Username `admin` | Password `pass`
+- **Medico:** Username `medico` | Password `pass`

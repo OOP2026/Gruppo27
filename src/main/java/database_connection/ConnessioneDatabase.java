@@ -11,7 +11,7 @@ public class ConnessioneDatabase {
     private static Connection connection = null;
 
     private static final Logger LOGGER = Logger.getLogger(ConnessioneDatabase.class.getName());
-    private static final String URL = "jdbc:postgresql://localhost:5432/ospedale27";
+    private static final String URL = "jdbc:postgresql://db.nyvvdoqwgsxhjwqtgafi.supabase.co:5432/postgres";
     private static final String USER = "postgres";
     private static final String PASSWORD = System.getenv("DB_PASSWORD");
 

@@ -46,9 +46,17 @@ public class Medico extends Utente {
     }
 
     public boolean isPrestazioneValid(LocalDateTime dataPrestazione) {
+
+        LocalDateTime fineSlotOrario = dataPrestazione.plusHours(1).minusMinutes(1);
+
         for (TurnoLavorativo turno : this.turni) {
-            if (!dataPrestazione.isBefore(turno.getInizio()) &&
-                    !dataPrestazione.isAfter(turno.getFine())) {
+            LocalDateTime inizioTurno = turno.getInizio();
+            LocalDateTime fineTurno = turno.getFine();
+
+            boolean isIntersezione = (inizioTurno.isBefore(fineSlotOrario) || inizioTurno.isEqual(fineSlotOrario)) &&
+                    (fineTurno.isAfter(dataPrestazione) || fineTurno.isEqual(dataPrestazione));
+
+            if (isIntersezione) {
                 return true;
             }
         }

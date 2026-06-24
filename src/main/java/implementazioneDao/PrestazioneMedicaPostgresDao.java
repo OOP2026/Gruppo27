@@ -92,7 +92,12 @@ public class PrestazioneMedicaPostgresDao implements PrestazioneMedicaDAO {
             stmt.setString(3, prestazione.getTipo().name());
             stmt.setTimestamp(4, Timestamp.valueOf(prestazione.getDataOra()));
 
-            stmt.executeUpdate();
+            int righeAggiornate = stmt.executeUpdate();
+            if (righeAggiornate == 0) {
+                throw new RuntimeException("Nessuna prestazione trovata per medico=" + medicoLogin
+                        + ", tipo=" + prestazione.getTipo() + ", data_ora=" + prestazione.getDataOra()
+                        + ": l'aggiornamento dell'esito non ha avuto effetto.");
+            }
         } catch (SQLException e) {
             throw new RuntimeException("Errore durante l'aggiornamento dell'esito della prestazione del medico " + medicoLogin, e);
         }

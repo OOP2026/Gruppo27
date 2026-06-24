@@ -92,7 +92,11 @@ public class RicoveroPostgresDao implements RicoveroDAO {
             stmt.setString(7, ricovero.getSsn());
             stmt.setTimestamp(8, new Timestamp(ricovero.getDataRicovero().getTime()));
 
-            stmt.executeUpdate();
+            int righeAggiornate = stmt.executeUpdate();
+            if (righeAggiornate == 0) {
+                throw new RuntimeException("Nessun ricovero trovato per ssn=" + ricovero.getSsn()
+                        + " e data_ricovero=" + ricovero.getDataRicovero() + ": l'aggiornamento non ha avuto effetto.");
+            }
         } catch (SQLException e) {
             throw new RuntimeException("Errore durante l'aggiornamento del ricovero per il paziente " + ricovero.getSsn(), e);
         }
@@ -107,7 +111,7 @@ public class RicoveroPostgresDao implements RicoveroDAO {
         String codiceLetto = rs.getString("letto_codice");
 
         if (codiceLetto != null) {
-            letto = new Letto(codiceLetto, true);
+            letto = caricaLetto(codiceLetto);
         }
 
         Ricovero ricovero = new Ricovero(
@@ -123,5 +127,24 @@ public class RicoveroPostgresDao implements RicoveroDAO {
         ricovero.setInCorso(rs.getBoolean("in_corso"));
 
         return ricovero;
+    }
+
+    private Letto caricaLetto(String codiceInventario) throws SQLException {
+        String sql = "SELECT codice_inventario, libero FROM letti WHERE codice_inventario = ?";
+        Connection conn = ConnessioneDatabase.getInstance();
+
+        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setString(1, codiceInventario);
+
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    return new Letto(rs.getString("codice_inventario"), rs.getBoolean("libero"));
+                }
+            }
+        }
+
+        // Il letto referenziato non esiste più nella tabella letti (caso anomalo):
+        // restituiamo comunque un riferimento minimale per non perdere il collegamento al ricovero.
+        return new Letto(codiceInventario, false);
     }
 }
