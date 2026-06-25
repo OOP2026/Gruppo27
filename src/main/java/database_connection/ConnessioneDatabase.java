@@ -11,8 +11,10 @@ public class ConnessioneDatabase {
     private static Connection connection = null;
 
     private static final Logger LOGGER = Logger.getLogger(ConnessioneDatabase.class.getName());
-    private static final String URL = "jdbc:postgresql://db.nyvvdoqwgsxhjwqtgafi.supabase.co:5432/postgres";
-    private static final String USER = "postgres";
+    /*private static final String URL = "jdbc:postgresql://db.nyvvdoqwgsxhjwqtgafi.supabase.co:5432/postgres";
+    private static final String USER = "postgres";*/
+    private static final String URL = "jdbc:postgresql://aws-0-eu-west-1.pooler.supabase.com:6543/postgres?prepareThreshold=0";
+    private static final String USER = "postgres.nyvvdoqwgsxhjwqtgafi";
     private static final String PASSWORD = System.getenv("DB_PASSWORD");
 
     private ConnessioneDatabase() {
