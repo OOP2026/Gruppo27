@@ -477,7 +477,7 @@ public class AdminController {
         }
 
         DefaultTableModel model = anagraficaView.getTableModel();
-        String cfPaziente = (String) model.getValueAt(rigaSelezionata, COL_SSN);
+        String cfPaziente = normalizeSsn((String) model.getValueAt(rigaSelezionata, COL_SSN));
         for (Paziente p : elencoPazienti) {
             if (p.getCf().equalsIgnoreCase(cfPaziente)) {
                 p.setNome(nome);
@@ -506,7 +506,7 @@ public class AdminController {
         int rigaSelezionata = tablePazienti.convertRowIndexToModel(rigaSelezionataView);
 
         DefaultTableModel model = anagraficaView.getTableModel();
-        String cfDaEliminare = (String) model.getValueAt(rigaSelezionata, COL_SSN);
+        String cfDaEliminare = normalizeSsn((String) model.getValueAt(rigaSelezionata, COL_SSN));
 
         boolean haStoricoClinico = elencoRicoveri.stream()
                 .anyMatch(r -> r.getSsn().equalsIgnoreCase(cfDaEliminare));

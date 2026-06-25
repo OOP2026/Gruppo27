@@ -18,7 +18,7 @@ public class RicoveroPostgresDao implements RicoveroDAO {
     @Override
     public List<Ricovero> findByPaziente(String ssn) {
         String sql = "SELECT * FROM ricoveri WHERE ssn = ?";
-        return eseguiQuery(sql, ssn);
+        return eseguiQuery(sql, normalizeSsn(ssn));
     }
 
     @Override
@@ -55,7 +55,7 @@ public class RicoveroPostgresDao implements RicoveroDAO {
         Connection conn = ConnessioneDatabase.getInstance();
 
         try (PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setString(1, ricovero.getSsn());
+            stmt.setString(1, normalizeSsn(ricovero.getSsn()));
             stmt.setTimestamp(2, new Timestamp(ricovero.getDataRicovero().getTime()));
             stmt.setTimestamp(3, toTimestamp(ricovero.getDataDimissionePrevista()));
 
@@ -95,7 +95,7 @@ public class RicoveroPostgresDao implements RicoveroDAO {
             stmt.setString(7, ricovero.getDiagnosiEntrata());
             stmt.setString(8, ricovero.getDiagnosiUscita());
             stmt.setBoolean(9, ricovero.isInCorso());
-            stmt.setString(10, ricovero.getSsn());
+            stmt.setString(10, normalizeSsn(ricovero.getSsn()));
             stmt.setTimestamp(11, new Timestamp(ricovero.getDataRicovero().getTime()));
 
             int righeAggiornate = stmt.executeUpdate();
@@ -110,6 +110,10 @@ public class RicoveroPostgresDao implements RicoveroDAO {
 
     private Timestamp toTimestamp(java.util.Date data) {
         return data != null ? new Timestamp(data.getTime()) : null;
+    }
+
+    private String normalizeSsn(String ssn) {
+        return ssn == null ? null : ssn.trim().toUpperCase();
     }
 
     private Ricovero mappaRicovero(ResultSet rs) throws SQLException {

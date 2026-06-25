@@ -230,11 +230,12 @@ public class MedicoController {
                     // Creazione dell'oggetto e inserimento nel Model, nel DB e nella lista locale
                     PrestazioneMedica nuovaPrestazione = new PrestazioneMedica(tipoEnum, orarioScelto, esito);
                     nuovaPrestazione.setDescrizione(dialog.getDescrizioneInput());
-                    // TODO: il form RegistraPrestazione non ha ancora un campo per l'SSN del paziente.
-                    // Una volta aggiunto (es. dialog.getSsnPaziente()), va richiamato qui:
-                    // nuovaPrestazione.setSsnPaziente(dialog.getSsnPaziente());
-                    // Senza questo collegamento, la prestazione viene salvata con ssn_paziente = NULL
-                    // e non contribuirà a determinare il "medico assegnato" nella vista dimissioni dell'admin.
+
+                    String ssnPaziente = dialog.getSsnPaziente();
+                    if (ssnPaziente != null && !ssnPaziente.isBlank()) {
+                        nuovaPrestazione.setSsnPaziente(ssnPaziente.toUpperCase());
+                    }
+
                     model.registraPrestazione(nuovaPrestazione);
                     prestazioneMedicaDAO.save(nuovaPrestazione, model.getLogin());
                     prestazioniRegistrate.add(nuovaPrestazione);
@@ -245,7 +246,9 @@ public class MedicoController {
                     dialog.dispose();
                     JOptionPane.showMessageDialog(parentFrame, "Prestazione pianificata correttamente alle " + orarioScelto.format(oraFormatter));
                 } catch (Exception ex) {
-                    JOptionPane.showMessageDialog(dialog, "Errore durante il salvataggio dei dati: " + ex.getMessage(), "Errore", JOptionPane.ERROR_MESSAGE);
+                    String dettaglio = ex.getCause() != null ? ex.getCause().getMessage() : ex.getMessage();
+                    JOptionPane.showMessageDialog(dialog, "Errore durante il salvataggio dei dati: " + dettaglio, "Errore", JOptionPane.ERROR_MESSAGE);
+                    ex.printStackTrace();
                 }
             });
             // Mostriamo la finestra (essendo modale bloccherà il frame principale finché non viene chiusa o salvata)
@@ -344,9 +347,16 @@ public class MedicoController {
     }
 
     private void mostraSchedaDettagli(JFrame frame, PrestazioneMedica p) {
+        String ssnInfo = (p.getSsnPaziente() == null || p.getSsnPaziente().isBlank())
+                ? "Non specificato" : p.getSsnPaziente();
+        String descrizioneInfo = (p.getDescrizione() == null || p.getDescrizione().isBlank())
+                ? "-" : p.getDescrizione();
+
         String scheda = "📋 --- SCHEDA PRESTAZIONE MEDICA ---\n\n" +
+                "SSN Paziente: " + ssnInfo + "\n" +
                 "Tipologia Atto: " + p.getTipo() + "\n" +
                 "Data e Ora Esecuzione: " + p.getDataOra().format(dataOraFormatter) + "\n" +
+                "Descrizione: " + descrizioneInfo + "\n" +
                 "Esito Diagnostico / Note:\n" + p.getEsito();
         String[] opzioni = {"Chiudi", "Modifica Esito"};
         //Mostriamo il pannello interattivo

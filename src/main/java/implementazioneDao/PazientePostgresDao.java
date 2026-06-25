@@ -20,7 +20,7 @@ public class PazientePostgresDao implements PazienteDAO {
         Connection conn = ConnessioneDatabase.getInstance();
 
         try (PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setString(1, cf);
+            stmt.setString(1, normalizeCf(cf));
 
             try (ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {
@@ -59,7 +59,7 @@ public class PazientePostgresDao implements PazienteDAO {
         Connection conn = ConnessioneDatabase.getInstance();
 
         try (PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setString(1, paziente.getCf());
+            stmt.setString(1, normalizeCf(paziente.getCf()));
             stmt.setString(2, paziente.getNome());
             stmt.setString(3, paziente.getCognome());
             stmt.setString(4, paziente.getRecapito());
@@ -79,7 +79,7 @@ public class PazientePostgresDao implements PazienteDAO {
             stmt.setString(1, paziente.getNome());
             stmt.setString(2, paziente.getCognome());
             stmt.setString(3, paziente.getRecapito());
-            stmt.setString(4, paziente.getCf());
+            stmt.setString(4, normalizeCf(paziente.getCf()));
 
             stmt.executeUpdate();
         } catch (SQLException e) {
@@ -93,11 +93,15 @@ public class PazientePostgresDao implements PazienteDAO {
         Connection conn = ConnessioneDatabase.getInstance();
 
         try (PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setString(1, cf);
+            stmt.setString(1, normalizeCf(cf));
             stmt.executeUpdate();
         } catch (SQLException e) {
             throw new RuntimeException("Errore durante l'eliminazione del paziente " + cf, e);
         }
+    }
+
+    private String normalizeCf(String cf) {
+        return cf == null ? null : cf.trim().toUpperCase();
     }
 
     private Paziente mappaPaziente(ResultSet rs) throws SQLException {

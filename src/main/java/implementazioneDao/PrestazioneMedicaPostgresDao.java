@@ -50,7 +50,7 @@ public class PrestazioneMedicaPostgresDao implements PrestazioneMedicaDAO {
         Connection conn = ConnessioneDatabase.getInstance();
 
         try (PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setString(1, ssnPaziente);
+            stmt.setString(1, normalizeSsn(ssnPaziente));
 
             try (ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {
@@ -71,7 +71,7 @@ public class PrestazioneMedicaPostgresDao implements PrestazioneMedicaDAO {
 
         try (PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setString(1, medicoLogin);
-            stmt.setString(2, prestazione.getSsnPaziente());
+            stmt.setString(2, normalizeSsn(prestazione.getSsnPaziente()));
             stmt.setString(3, prestazione.getTipo().name());
             stmt.setTimestamp(4, Timestamp.valueOf(prestazione.getDataOra()));
             stmt.setString(5, prestazione.getDescrizione());
@@ -103,5 +103,9 @@ public class PrestazioneMedicaPostgresDao implements PrestazioneMedicaDAO {
         } catch (SQLException e) {
             throw new RuntimeException("Errore durante l'aggiornamento dell'esito della prestazione del medico " + medicoLogin, e);
         }
+    }
+
+    private String normalizeSsn(String ssn) {
+        return (ssn == null || ssn.isBlank()) ? null : ssn.trim().toUpperCase();
     }
 }

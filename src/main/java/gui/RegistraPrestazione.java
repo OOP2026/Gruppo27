@@ -83,4 +83,5 @@ public class RegistraPrestazione extends JDialog {
     public String getTipoSelezionato() { return (String) tipoPrestazioneBox.getSelectedItem(); }
     public String getEsitoInput() { return EsitoPrestazione.getText().trim(); }
     public String getDescrizioneInput() { return descrizionePrestazione.getText().trim(); }
+    public String getSsnPaziente() { return ssnField != null ? ssnField.getText().trim() : null; }
 }
