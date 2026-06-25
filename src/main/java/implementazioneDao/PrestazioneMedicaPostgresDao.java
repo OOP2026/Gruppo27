@@ -45,20 +45,30 @@ public class PrestazioneMedicaPostgresDao implements PrestazioneMedicaDAO {
     }
 
     @Override
-    public Optional<String> findMedicoAssegnato(String ssnPaziente) {
-        String sql = "SELECT medico_login FROM prestazioni_mediche WHERE ssn_paziente = ? ORDER BY data_ora DESC LIMIT 1";
-        Connection conn = ConnessioneDatabase.getInstance();
+    public Optional<String> findMedicoAssegnato(String ssn, java.util.Date dataRicovero) {
+        // La query ora cerca solo le prestazioni avvenute DOPO l'inizio del ricovero
+        String sql = "SELECT u.nome, u.cognome " +
+                "FROM prestazioni_mediche p " +
+                "JOIN utenti u ON p.medico_login = u.login " +
+                "WHERE p.ssn_paziente = ? AND p.data_ora >= ? " +
+                "ORDER BY p.data_ora DESC " +
+                "LIMIT 1";
 
+        Connection conn = database_connection.ConnessioneDatabase.getInstance();
         try (PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setString(1, normalizeSsn(ssnPaziente));
+            stmt.setString(1, ssn);
+
+            // Convertiamo la java.util.Date del ricovero in java.sql.Timestamp per il database
+            stmt.setTimestamp(2, new java.sql.Timestamp(dataRicovero.getTime()));
 
             try (ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {
-                    return Optional.of(rs.getString("medico_login"));
+                    String nomeCompleto = rs.getString("nome") + " " + rs.getString("cognome");
+                    return Optional.of(nomeCompleto);
                 }
             }
         } catch (SQLException e) {
-            throw new RuntimeException("Errore durante la ricerca del medico assegnato al paziente " + ssnPaziente, e);
+            throw new RuntimeException("Errore nel recupero del medico assegnato al paziente " + ssn, e);
         }
 
         return Optional.empty();

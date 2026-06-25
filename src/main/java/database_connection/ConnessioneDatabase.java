@@ -20,7 +20,7 @@ public class ConnessioneDatabase {
 
     public static Connection getInstance() {
         try {
-            if (connection == null || connection.isClosed()) {
+            if (connection == null || connection.isClosed()|| !connection.isValid(3)) {
 
                 if (PASSWORD == null) {
                     LOGGER.severe("La password del database non è stata trovata. Imposta la variabile d'ambiente 'DB_PASSWORD'.");

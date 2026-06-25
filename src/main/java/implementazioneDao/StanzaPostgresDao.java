@@ -1,5 +1,6 @@
 package implementazioneDao;
 
+import dao.LettoDAO;
 import dao.StanzaDAO;
 import database_connection.ConnessioneDatabase;
 import model.Letto;
@@ -25,10 +26,11 @@ public class StanzaPostgresDao implements StanzaDAO {
 
             try (ResultSet rs = stmt.executeQuery()) {
                 while (rs.next()) {
+                    LettoDAO lettoDao = new LettoPostgresDao();
                     int numeroStanza = rs.getInt("numero");
                     Stanza stanza = new Stanza(numeroStanza);
 
-                    for (Letto letto : caricaLetti(numeroStanza, repartoNum)) {
+                    for (Letto letto : lettoDao.findByStanza(numeroStanza, repartoNum)) {
                         stanza.aggiungiLetto(letto);
                     }
 
@@ -71,22 +73,4 @@ public class StanzaPostgresDao implements StanzaDAO {
         }
     }
 
-    private List<Letto> caricaLetti(int numeroStanza, int repartoNum) throws SQLException {
-        List<Letto> letti = new ArrayList<>();
-        String sql = "SELECT codice_inventario, libero FROM letti WHERE stanza_numero = ? AND reparto_num = ?";
-        Connection conn = ConnessioneDatabase.getInstance();
-
-        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setInt(1, numeroStanza);
-            stmt.setInt(2, repartoNum);
-
-            try (ResultSet rs = stmt.executeQuery()) {
-                while (rs.next()) {
-                    letti.add(new Letto(rs.getString("codice_inventario"), rs.getBoolean("libero")));
-                }
-            }
-        }
-
-        return letti;
-    }
 }

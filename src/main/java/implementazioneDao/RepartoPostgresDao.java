@@ -18,41 +18,108 @@ public class RepartoPostgresDao implements RepartoDAO {
 
     @Override
     public Optional<Reparto> findByNum(int num) {
-        String sql = "SELECT * FROM reparti WHERE num = ?";
+        String sql = "SELECT r.num AS r_num, r.nome AS r_nome, " +
+                "s.numero AS s_num, " +
+                "l.codice_inventario, l.libero " +
+                "FROM reparti r " +
+                "LEFT JOIN stanze s ON r.num = s.reparto_num " +
+                "LEFT JOIN letti l ON s.numero = l.stanza_numero " +
+                "WHERE r.num = ? " +
+                "ORDER BY s.numero";
+
         Connection conn = ConnessioneDatabase.getInstance();
+        Reparto reparto = null;
+        java.util.Map<Integer, Stanza> stanzeMap = new java.util.HashMap<>();
 
         try (PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setInt(1, num);
 
             try (ResultSet rs = stmt.executeQuery()) {
-                if (rs.next()) {
-                    return Optional.of(mappaReparto(rs));
+                while (rs.next()) {
+                    // Se è la prima riga, inizializziamo l'oggetto Reparto
+                    if (reparto == null) {
+                        reparto = new Reparto(rs.getInt("r_num"), rs.getString("r_nome"));
+                    }
+
+                    // Carichiamo le stanze (se esistono)
+                    int numStanza = rs.getInt("s_num");
+                    if (!rs.wasNull()) {
+                        // FIX: Sostituito computeIfAbsent con un controllo classico per evitare l'errore della Lambda
+                        Stanza stanza = stanzeMap.get(numStanza);
+                        if (stanza == null) {
+                            stanza = new Stanza(numStanza);
+                            reparto.aggiungiStanza(stanza);
+                            stanzeMap.put(numStanza, stanza);
+                        }
+
+                        // Carichiamo i letti (se esistono)
+                        String codLetto = rs.getString("codice_inventario");
+                        if (codLetto != null) {
+                            Letto letto = new Letto(codLetto, rs.getBoolean("libero"));
+                            stanza.aggiungiLetto(letto);
+                        }
+                    }
                 }
             }
         } catch (SQLException e) {
             throw new RuntimeException("Errore durante la ricerca del reparto " + num, e);
         }
 
-        return Optional.empty();
+        return Optional.ofNullable(reparto);
     }
 
     @Override
     public List<Reparto> findAll() {
-        List<Reparto> reparti = new ArrayList<>();
-        String sql = "SELECT * FROM reparti";
+        String sql = "SELECT r.num AS r_num, r.nome AS r_nome, " +
+                "s.numero AS s_num, " +
+                "l.codice_inventario, l.libero " +
+                "FROM reparti r " +
+                "LEFT JOIN stanze s ON r.num = s.reparto_num " +
+                "LEFT JOIN letti l ON s.numero = l.stanza_numero " +
+                "ORDER BY r.num, s.numero";
+
         Connection conn = ConnessioneDatabase.getInstance();
+        java.util.Map<Integer, Reparto> repartiMap = new java.util.LinkedHashMap<>();
+        // Usiamo una chiave composta "IdReparto-NumeroStanza" per evitare conflitti tra stanze con lo stesso numero in reparti diversi
+        java.util.Map<String, Stanza> stanzeMap = new java.util.HashMap<>();
 
         try (PreparedStatement stmt = conn.prepareStatement(sql);
              ResultSet rs = stmt.executeQuery()) {
 
             while (rs.next()) {
-                reparti.add(mappaReparto(rs));
+                int numReparto = rs.getInt("r_num");
+
+                // Gestione Reparto senza Lambda
+                Reparto reparto = repartiMap.get(numReparto);
+                if (reparto == null) {
+                    reparto = new Reparto(numReparto, rs.getString("r_nome"));
+                    repartiMap.put(numReparto, reparto);
+                }
+
+                int numStanza = rs.getInt("s_num");
+                if (!rs.wasNull()) {
+                    String stanzaKey = numReparto + "-" + numStanza;
+
+                    // Gestione Stanza senza Lambda
+                    Stanza stanza = stanzeMap.get(stanzaKey);
+                    if (stanza == null) {
+                        stanza = new Stanza(numStanza);
+                        reparto.aggiungiStanza(stanza);
+                        stanzeMap.put(stanzaKey, stanza);
+                    }
+
+                    // Gestione Letto
+                    String codLetto = rs.getString("codice_inventario");
+                    if (codLetto != null) {
+                        Letto letto = new Letto(codLetto, rs.getBoolean("libero"));
+                        stanza.aggiungiLetto(letto);
+                    }
+                }
             }
         } catch (SQLException e) {
             throw new RuntimeException("Errore durante il recupero dei reparti", e);
         }
-
-        return reparti;
+        return new ArrayList<>(repartiMap.values());
     }
 
     @Override
@@ -81,60 +148,5 @@ public class RepartoPostgresDao implements RepartoDAO {
         } catch (SQLException e) {
             throw new RuntimeException("Errore durante l'eliminazione del reparto " + num, e);
         }
-    }
-
-    private Reparto mappaReparto(ResultSet rs) throws SQLException {
-        int num = rs.getInt("num");
-        Reparto reparto = new Reparto(num, rs.getString("nome"));
-
-        for (Stanza stanza : caricaStanze(num)) {
-            reparto.aggiungiStanza(stanza);
-        }
-
-        return reparto;
-    }
-
-    private List<Stanza> caricaStanze(int repartoNum) throws SQLException {
-        List<Stanza> stanze = new ArrayList<>();
-        String sql = "SELECT numero FROM stanze WHERE reparto_num = ?";
-        Connection conn = ConnessioneDatabase.getInstance();
-
-        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setInt(1, repartoNum);
-
-            try (ResultSet rs = stmt.executeQuery()) {
-                while (rs.next()) {
-                    int numeroStanza = rs.getInt("numero");
-                    Stanza stanza = new Stanza(numeroStanza);
-
-                    for (Letto letto : caricaLetti(numeroStanza, repartoNum)) {
-                        stanza.aggiungiLetto(letto);
-                    }
-
-                    stanze.add(stanza);
-                }
-            }
-        }
-
-        return stanze;
-    }
-
-    private List<Letto> caricaLetti(int numeroStanza, int repartoNum) throws SQLException {
-        List<Letto> letti = new ArrayList<>();
-        String sql = "SELECT codice_inventario, libero FROM letti WHERE stanza_numero = ? AND reparto_num = ?";
-        Connection conn = ConnessioneDatabase.getInstance();
-
-        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setInt(1, numeroStanza);
-            stmt.setInt(2, repartoNum);
-
-            try (ResultSet rs = stmt.executeQuery()) {
-                while (rs.next()) {
-                    letti.add(new Letto(rs.getString("codice_inventario"), rs.getBoolean("libero")));
-                }
-            }
-        }
-
-        return letti;
     }
 }

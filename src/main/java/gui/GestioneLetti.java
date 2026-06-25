@@ -9,6 +9,7 @@ public class GestioneLetti {
     private JComboBox<Reparto> cmbReparti;
     private JPanel panelMappaLetti;
     private JScrollPane scrollMappa;
+    private JTextField txtRicercaLetto;
 
     public GestioneLetti() {
         if (panelMappaLetti != null) {
@@ -19,4 +20,5 @@ public class GestioneLetti {
     public JPanel getMainPanel() { return mainPanel; }
     public JComboBox<Reparto> getCmbReparti() { return cmbReparti; }
     public JPanel getPanelMappaLetti() { return panelMappaLetti; }
+    public JTextField getTxtRicercaLetto() { return txtRicercaLetto; }
 }

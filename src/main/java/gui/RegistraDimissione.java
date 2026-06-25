@@ -19,7 +19,7 @@ public class RegistraDimissione extends JDialog {
     private JPanel DataPrevista;
     private boolean confermato = false;
 
-    public RegistraDimissione(JFrame parent, Date dataPrevistaRicovero, String ssnPaziente) {
+    public RegistraDimissione(JFrame parent, Date dataRicovero, String ssnPaziente) {
         super(parent, "Registrazione Dimissione Paziente", true);
         setContentPane(mainPanel);
         setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
@@ -30,6 +30,10 @@ public class RegistraDimissione extends JDialog {
         dimissioneEffetivaChooser = new JDateChooser();
         dimissioneEffetivaChooser.setDateFormatString("dd/MM/yyyy");
         dimissioneEffetivaChooser.setDate(new Date());
+        dimissioneEffetivaChooser.setMaxSelectableDate(new Date());
+        if (dataRicovero != null) {
+            dimissioneEffetivaChooser.setMinSelectableDate(dataRicovero);
+        }
         datePanel.setLayout(new BorderLayout());
         datePanel.add(dimissioneEffetivaChooser, BorderLayout.CENTER);
 

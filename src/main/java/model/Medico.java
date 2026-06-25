@@ -10,14 +10,18 @@ public class Medico extends Utente {
     private String cognome;
     private boolean disponibile;
     private List<TurnoLavorativo> turni = new ArrayList<>();
+    private List<PrestazioneMedica> prestazioniErogate = new ArrayList<>();
 
     public Medico(String login, String password, String nome, String cognome){
         super(login, password);
         this.nome = nome;
         this.cognome = cognome;
 
-    }public boolean registraPrestazione(PrestazioneMedica p){
-        return true;
+    }public boolean registraPrestazione(PrestazioneMedica p) {
+        if (p != null) {
+            return this.prestazioniErogate.add(p);
+        }
+        return false;
     }
     public void aggiungiTurno(TurnoLavorativo t){
         this.turni.add(t);
@@ -43,6 +47,9 @@ public class Medico extends Utente {
     }
     public void setDisponibile(boolean disponibile){
         this.disponibile = disponibile;
+    }
+    public List<PrestazioneMedica> getPrestazioniErogate() {
+        return prestazioniErogate;
     }
 
     public boolean isPrestazioneValid(LocalDateTime dataPrestazione) {

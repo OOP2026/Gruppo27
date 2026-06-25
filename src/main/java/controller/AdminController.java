@@ -133,6 +133,14 @@ public class AdminController {
             listaReparti.forEach(cmbReparti::addItem);
             cmbReparti.addActionListener(e -> aggiornaMappaCorrente());
         }
+        JTextField txtRicerca = gestioneLettiView.getTxtRicercaLetto();
+        if (txtRicerca != null) {
+            txtRicerca.getDocument().addDocumentListener(new javax.swing.event.DocumentListener() {
+                @Override public void insertUpdate(javax.swing.event.DocumentEvent e) { aggiornaMappaCorrente(); }
+                @Override public void removeUpdate(javax.swing.event.DocumentEvent e) { aggiornaMappaCorrente(); }
+                @Override public void changedUpdate(javax.swing.event.DocumentEvent e) { aggiornaMappaCorrente(); }
+            });
+        }
 
         if (!listaReparti.isEmpty()) {
             aggiornaMappaCorrente();
@@ -156,7 +164,7 @@ public class AdminController {
 
         // --- Dimissioni in corso ---
         String[] colonneDimissioni = {"SSN Paziente", "Nome", "Cognome", "Reparto",
-                "Letto", "Medico", "Data Dimissione"};
+                "Letto", "Medico", "Data Dimissione Prevista"};
         tableModelDimissioni = buildNonEditableModel(colonneDimissioni);
 
         if (view.getDimissioniTable() != null) {
@@ -358,20 +366,39 @@ public class AdminController {
             return;
         }
 
-        // IMPORTANTE: la tabella ha un RowSorter (vedi inizializzaFiltriDimissioni), quindi l'indice
-        // di riga selezionato si riferisce alla vista ordinata/filtrata, non al model sottostante.
-        // Va convertito prima di leggere i valori, altrimenti con un ordinamento o filtro attivo
-        // si rischia di leggere i dati di un paziente diverso da quello effettivamente cliccato.
         int rigaSelezionata = tabellaDimissioni.convertRowIndexToModel(rigaSelezionataView);
 
         String ssnSelezionato = normalizeSsn((String) tabellaDimissioni.getModel().getValueAt(rigaSelezionata, 0));
         Ricovero ricovero = trovaRicoveroAttivo(ssnSelezionato);
         if (ricovero == null) return;
 
+        // Passiamo la data di INIZIO ricovero al costruttore della GUI (per bloccare il calendario)
         RegistraDimissione dialogDimissione =
-                new RegistraDimissione(parentFrame, ricovero.getDataDimissionePrevista(), ssnSelezionato);
+                new RegistraDimissione(parentFrame, ricovero.getDataRicovero(), ssnSelezionato);
+
         dialogDimissione.getAnnullaButton().addActionListener(a -> dialogDimissione.dispose());
+
+        // Aggiungiamo i controlli all'azione del tasto Salva
         dialogDimissione.getSalvaButton().addActionListener(s -> {
+            Date dataDimissione = dialogDimissione.getDimissioneEffettiva().getDate();
+            Date oggi = new Date();
+            Date dataInizioRicovero = ricovero.getDataRicovero();
+
+            if (dataDimissione == null) {
+                JOptionPane.showMessageDialog(dialogDimissione, "Seleziona una data di dimissione!", "Errore", JOptionPane.WARNING_MESSAGE);
+                return;
+            }
+            if (dataDimissione.after(oggi)) {
+                JOptionPane.showMessageDialog(dialogDimissione, "La data di dimissione non può essere successiva a oggi.", "Data Non Valida", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+            if (dataDimissione.before(dataInizioRicovero)) {
+                JOptionPane.showMessageDialog(dialogDimissione, "La data di dimissione non può essere precedente al giorno di ingresso (" +
+                        new java.text.SimpleDateFormat("dd/MM/yyyy").format(dataInizioRicovero) + ").", "Data Non Valida", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+
+            // Se supera tutti i controlli, conferma e chiudi la finestra
             dialogDimissione.setConfermato(true);
             dialogDimissione.dispose();
         });
@@ -538,13 +565,50 @@ public class AdminController {
     // =========================================================================
 
     private void aggiornaMappaCorrente() {
-        Object selected = gestioneLettiView.getCmbReparti().getSelectedItem();
-        if (selected instanceof Reparto) {
-            disegnaMappaLetti((Reparto) selected);
+        String filtro = "";
+        if (gestioneLettiView.getTxtRicercaLetto() != null) {
+            filtro = gestioneLettiView.getTxtRicercaLetto().getText().trim().toLowerCase();
+        }
+
+        Reparto repartoSelezionato = null;
+        Object selectedObj = gestioneLettiView.getCmbReparti().getSelectedItem();
+        if (selectedObj instanceof Reparto) {
+            repartoSelezionato = (Reparto) selectedObj;
+        }
+
+        if (!filtro.isEmpty()) {
+            Reparto repartoTrovato = null;
+
+            ricercaLetto:
+            for (Reparto r : listaReparti) {
+                if (r.getStanze() != null) {
+                    for (Stanza s : r.getStanze()) {
+                        if (s.getLetti() != null) {
+                            for (Letto l : s.getLetti()) {
+                                if (l.getCodiceInventario().toLowerCase().contains(filtro)) {
+                                    repartoTrovato = r;
+                                    break ricercaLetto;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            if (repartoTrovato != null && repartoSelezionato != null
+                    && repartoTrovato.getNum() != repartoSelezionato.getNum()) {
+
+                gestioneLettiView.getCmbReparti().setSelectedItem(repartoTrovato);
+                return;
+            }
+        }
+
+        if (repartoSelezionato != null) {
+            disegnaMappaLetti(repartoSelezionato, filtro);
         }
     }
 
-    private void disegnaMappaLetti(Reparto reparto) {
+    private void disegnaMappaLetti(Reparto reparto, String filtro) {
         JPanel mappa = gestioneLettiView.getPanelMappaLetti();
         mappa.removeAll();
 
@@ -554,10 +618,24 @@ public class AdminController {
                 panelStanza.setBorder(BorderFactory.createTitledBorder("Stanza " + stanza.getNumero()));
                 panelStanza.setAlignmentX(Component.LEFT_ALIGNMENT);
 
+                boolean stanzaHaLettiVisibili = false;
+
                 if (stanza.getLetti() != null) {
-                    stanza.getLetti().forEach(letto -> panelStanza.add(creaLabelLetto(letto)));
+                    for (Letto letto : stanza.getLetti()) {
+                        // Se la barra di ricerca non è vuota e il codice letto NON contiene la parola cercata, saltalo
+                        if (!filtro.isEmpty() && !letto.getCodiceInventario().toLowerCase().contains(filtro)) {
+                            continue;
+                        }
+
+                        panelStanza.add(creaLabelLetto(letto));
+                        stanzaHaLettiVisibili = true;
+                    }
                 }
-                mappa.add(panelStanza);
+
+
+                if (stanzaHaLettiVisibili) {
+                    mappa.add(panelStanza);
+                }
             }
         }
 
@@ -650,7 +728,7 @@ public class AdminController {
             String dataEntrata = formatData(ricovero.getDataRicovero());
             String dataUscita;
             if (ricovero.isInCorso()) {
-                dataUscita = "(Prevista: " + formatData(ricovero.getDataDimissionePrevista()) + ")";
+                dataUscita = formatData(ricovero.getDataDimissionePrevista());
             } else {
                 dataUscita = formatData(ricovero.getDataDimissioneEffettiva());
             }
@@ -664,8 +742,7 @@ public class AdminController {
                 String infoLetto    = ricovero.getLettoAssegnato() != null
                         ? ricovero.getLettoAssegnato().getCodiceInventario() : "-";
                 String nomeReparto  = trovaNomeReparto(infoLetto);
-                String medicoAssegnato = prestazioneMedicaDAO.findMedicoAssegnato(ricovero.getSsn())
-                        .orElse("Da assegnare");
+                String medicoAssegnato = prestazioneMedicaDAO.findMedicoAssegnato(ricovero.getSsn(), ricovero.getDataRicovero()).orElse("Da assegnare");
 
                 tableModelDimissioni.addRow(new Object[]{
                         ricovero.getSsn(), nomeCognome[0], nomeCognome[1],
