@@ -96,19 +96,11 @@ public class PrestazioneMedicaPostgresDao implements PrestazioneMedicaDAO {
             return risultato;
         }
 
-        // Una singola query recupera TUTTE le prestazioni (con medico associato) per tutti
-        // gli ssn coinvolti, evitando di interrogare il database una volta per ogni ricovero.
-        // Il filtro "solo prestazioni dopo l'inizio del ricovero" e la scelta della più recente
-        // vengono fatti qui in Java sul risultato unico, invece che in N query separate.
-        StringBuilder placeholders = new StringBuilder();
-        for (int i = 0; i < ssnDistinti.size(); i++) {
-            placeholders.append(i == 0 ? "?" : ", ?");
-        }
 
         String sql = "SELECT p.ssn_paziente, p.data_ora, u.nome, u.cognome " +
                 "FROM prestazioni_mediche p " +
                 "JOIN utenti u ON p.medico_login = u.login " +
-                "WHERE p.ssn_paziente IN (" + placeholders + ") " +
+                "WHERE p.ssn_paziente = ANY(?) " +
                 "ORDER BY p.ssn_paziente, p.data_ora DESC";
 
         Connection conn = ConnessioneDatabase.getInstance();
@@ -124,9 +116,8 @@ public class PrestazioneMedicaPostgresDao implements PrestazioneMedicaDAO {
         }
 
         try (PreparedStatement stmt = conn.prepareStatement(sql)) {
-            for (int i = 0; i < ssnDistinti.size(); i++) {
-                stmt.setString(i + 1, ssnDistinti.get(i));
-            }
+            java.sql.Array ssnArray = conn.createArrayOf("varchar", ssnDistinti.toArray());
+            stmt.setArray(1, ssnArray);
 
             try (ResultSet rs = stmt.executeQuery()) {
                 while (rs.next()) {

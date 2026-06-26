@@ -24,8 +24,12 @@ import java.time.format.DateTimeFormatter;
 import java.time.temporal.TemporalAdjusters;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class MedicoController {
+    private static final Logger LOGGER = Logger.getLogger(MedicoController.class.getName());
+
     private InterfacciaMedico view;
     private Medico model;
     private final JFrame mainFrame;
@@ -248,7 +252,7 @@ public class MedicoController {
                 } catch (Exception ex) {
                     String dettaglio = ex.getCause() != null ? ex.getCause().getMessage() : ex.getMessage();
                     JOptionPane.showMessageDialog(dialog, "Errore durante il salvataggio dei dati: " + dettaglio, "Errore", JOptionPane.ERROR_MESSAGE);
-                    ex.printStackTrace();
+                    LOGGER.log(Level.SEVERE, "Errore durante il salvataggio della prestazione medica", ex);
                 }
             });
             // Mostriamo la finestra (essendo modale bloccherà il frame principale finché non viene chiusa o salvata)
