@@ -18,13 +18,6 @@ public class Reparto {
         this.stanze.add(stanza);
 }
 
-    /*public Stanza getStanza(int numero){
-        for(Stanza stanza : stanze){
-            if (stanza.getNumero() == numero){return stanza;}
-        }
-        return null;
-    }*/
-
     public void disponibilitaLetti() { System.out.println("Letti disponibili:"); }
 
     public int getQuantitaStanze(){ return this.stanze.size();}

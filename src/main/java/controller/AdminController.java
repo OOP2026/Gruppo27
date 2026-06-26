@@ -5,6 +5,7 @@ import dao.PazienteDAO;
 import dao.PrestazioneMedicaDAO;
 import dao.RepartoDAO;
 import dao.RicoveroDAO;
+import database_connection.ConnessioneDatabase;
 import gui.InterfacciaAmministratore;
 import gui.RegistraDimissione;
 import gui.RegistraRicovero;
@@ -36,6 +37,7 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.logging.Logger;
 
 
@@ -332,10 +334,6 @@ public class AdminController {
         String diagnosiEntrata = normalizeDiagnosi(dialogRicovero.getDiagnosiEntrata());
 
         Letto lettoScelto = dialogRicovero.getLettoSelezionato();
-        if (lettoScelto != null) {
-            lettoScelto.setStatoAttuale(false);
-            lettoDAO.updateStato(lettoScelto.getCodiceInventario(), false);
-        }
 
         Ricovero nuovoRicovero = new Ricovero(
                 normalizeSsn(dialogRicovero.getSSN()),
@@ -347,7 +345,30 @@ public class AdminController {
         nuovoRicovero.setDayHospital(dialogRicovero.isDayHospital());
         nuovoRicovero.setDescrizione(dialogRicovero.getDescrizione());
 
-        ricoveroDAO.save(nuovoRicovero);
+        try {
+            // Le due operazioni devono avvenire insieme: se il salvataggio del ricovero
+            // fallisse dopo aver già segnato il letto come occupato, ci ritroveremmo con
+            // un letto bloccato senza nessun ricovero collegato. La transazione garantisce
+            // che vengano confermate entrambe o nessuna delle due.
+            ConnessioneDatabase.eseguiInTransazione(() -> {
+                if (lettoScelto != null) {
+                    lettoDAO.updateStato(lettoScelto.getCodiceInventario(), false);
+                }
+                ricoveroDAO.save(nuovoRicovero);
+            });
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(view.getPanelAmministratore(),
+                    "Errore durante la registrazione del ricovero, nessuna modifica è stata salvata: "
+                            + (e.getCause() != null ? e.getCause().getMessage() : e.getMessage()),
+                    TITOLO_ERRORE, JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        // Solo se la transazione è andata a buon fine aggiorniamo lo stato in memoria,
+        // così la UI resta coerente con quanto effettivamente salvato sul database.
+        if (lettoScelto != null) {
+            lettoScelto.setStatoAttuale(false);
+        }
         elencoRicoveri.add(nuovoRicovero);
         aggiornaTabelle();
         aggiornaMappaCorrente();
@@ -411,19 +432,48 @@ public class AdminController {
         String diagnosiUscita = normalizeDiagnosi(dialogDimissione.getDiagnosiUscita());
         String terapia = dialogDimissione.getTerapia();
         Date dataDimissioneScelta = dialogDimissione.getDimissioneEffettiva().getDate();
+        Date dataDimissioneEffettiva = dataDimissioneScelta != null ? dataDimissioneScelta : new Date();
+        Letto lettoDaLiberare = ricovero.getLettoAssegnato();
+
+        // Prepariamo i nuovi valori senza ancora mutare l'oggetto Ricovero reale: se la
+        // transazione dovesse fallire, vogliamo poter lasciare l'oggetto esattamente come
+        // era prima, così la UI non mostra un paziente come dimesso se il DB non ha salvato nulla.
+        boolean inCorsoOriginale = ricovero.isInCorso();
+        String diagnosiUscitaOriginale = ricovero.getDiagnosiUscita();
+        String terapiaOriginale = ricovero.getTerapia();
+        Date dataDimissioneEffettivaOriginale = ricovero.getDataDimissioneEffettiva();
 
         ricovero.setInCorso(false);
         ricovero.setDiagnosiUscita(diagnosiUscita);
         ricovero.setTerapia(terapia);
-        ricovero.setDataDimissioneEffettiva(dataDimissioneScelta != null ? dataDimissioneScelta : new Date());
+        ricovero.setDataDimissioneEffettiva(dataDimissioneEffettiva);
 
-        Letto lettoDaLiberare = ricovero.getLettoAssegnato();
+        try {
+            // Stesso ragionamento della registrazione: chiudere il ricovero e liberare il
+            // letto devono avvenire insieme, altrimenti un fallimento a metà strada lascerebbe
+            // un ricovero chiuso con il letto ancora segnato come occupato (o viceversa).
+            ConnessioneDatabase.eseguiInTransazione(() -> {
+                ricoveroDAO.update(ricovero);
+                if (lettoDaLiberare != null) {
+                    lettoDAO.updateStato(lettoDaLiberare.getCodiceInventario(), true);
+                }
+            });
+        } catch (Exception e) {
+            // Rollback dello stato in memoria: la transazione non è andata a buon fine.
+            ricovero.setInCorso(inCorsoOriginale);
+            ricovero.setDiagnosiUscita(diagnosiUscitaOriginale);
+            ricovero.setTerapia(terapiaOriginale);
+            ricovero.setDataDimissioneEffettiva(dataDimissioneEffettivaOriginale);
 
-        ricoveroDAO.update(ricovero);
+            JOptionPane.showMessageDialog(view.getPanelAmministratore(),
+                    "Errore durante la dimissione del paziente, nessuna modifica è stata salvata: "
+                            + (e.getCause() != null ? e.getCause().getMessage() : e.getMessage()),
+                    TITOLO_ERRORE, JOptionPane.ERROR_MESSAGE);
+            return;
+        }
 
         if (lettoDaLiberare != null) {
             lettoDaLiberare.setStatoAttuale(true);
-            lettoDAO.updateStato(lettoDaLiberare.getCodiceInventario(), true);
             ricovero.setLettoAssegnato(null);
         }
 
@@ -715,6 +765,10 @@ public class AdminController {
 
         Calendar cal = Calendar.getInstance();
 
+        // Risolviamo il medico assegnato per TUTTI i ricoveri con un'unica query batch,
+        // invece di interrogare il database una volta per ogni ricovero dentro il loop.
+        Map<String, String> mediciAssegnati = prestazioneMedicaDAO.findMedicoAssegnatoBatch(elencoRicoveri);
+
         for (Ricovero ricovero : elencoRicoveri) {
             String[] nomeCognome = cercaNomeCognomeBySsn(ricovero.getSsn());
 
@@ -742,7 +796,7 @@ public class AdminController {
                 String infoLetto    = ricovero.getLettoAssegnato() != null
                         ? ricovero.getLettoAssegnato().getCodiceInventario() : "-";
                 String nomeReparto  = trovaNomeReparto(infoLetto);
-                String medicoAssegnato = prestazioneMedicaDAO.findMedicoAssegnato(ricovero.getSsn(), ricovero.getDataRicovero()).orElse("Da assegnare");
+                String medicoAssegnato = mediciAssegnati.getOrDefault(normalizeSsn(ricovero.getSsn()), "Da assegnare");
 
                 tableModelDimissioni.addRow(new Object[]{
                         ricovero.getSsn(), nomeCognome[0], nomeCognome[1],

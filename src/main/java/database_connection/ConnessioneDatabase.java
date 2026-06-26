@@ -39,4 +39,53 @@ public class ConnessioneDatabase {
 
         return connection;
     }
+
+    /**
+     * Esegue più operazioni sul database come un'unica transazione atomica: se una qualsiasi
+     * di esse lancia un'eccezione, tutte le modifiche fatte finora nella transazione vengono
+     * annullate (rollback) e l'eccezione viene rilanciata al chiamante.
+     * La connessione condivisa di questa classe lavora normalmente in autocommit (ogni singola
+     * query si conferma da sola). Questo metodo disattiva temporaneamente l'autocommit solo per
+     * la durata dell'operazione passata, e lo ripristina sempre alla fine — sia in caso di
+     * successo che di errore — così il resto dell'applicazione continua a funzionare come prima.
+     */
+    public static void eseguiInTransazione(Runnable operazioni) {
+        Connection conn = getInstance();
+        if (conn == null) {
+            throw new IllegalStateException("Connessione al database non disponibile: impossibile avviare la transazione.");
+        }
+
+        boolean autoCommitOriginale;
+        try {
+            autoCommitOriginale = conn.getAutoCommit();
+            conn.setAutoCommit(false);
+        } catch (SQLException e) {
+            throw new RuntimeException("Errore durante l'avvio della transazione", e);
+        }
+
+        try {
+            operazioni.run();
+            conn.commit();
+        } catch (RuntimeException | Error e) {
+            try {
+                conn.rollback();
+            } catch (SQLException rollbackEx) {
+                LOGGER.log(Level.SEVERE, "Errore durante il rollback della transazione", rollbackEx);
+            }
+            throw e;
+        } catch (SQLException e) {
+            try {
+                conn.rollback();
+            } catch (SQLException rollbackEx) {
+                LOGGER.log(Level.SEVERE, "Errore durante il rollback della transazione", rollbackEx);
+            }
+            throw new RuntimeException("Errore durante il commit della transazione", e);
+        } finally {
+            try {
+                conn.setAutoCommit(autoCommitOriginale);
+            } catch (SQLException e) {
+                LOGGER.log(Level.SEVERE, "Errore durante il ripristino dell'autocommit dopo la transazione", e);
+            }
+        }
+    }
 }

@@ -92,7 +92,7 @@ public class UtentePostgresDao implements UtenteDAO {
     public void update(Utente utente) {
         // NOTA: questo metodo aggiorna solo i dati anagrafici, MAI la password,
         // per evitare di rihashare accidentalmente un hash già salvato.
-        // Per cambiare la password usare updatePassword().
+
         String sql = "UPDATE utenti SET nome = ?, cognome = ?, disponibile = ? WHERE login = ?";
         Connection conn = ConnessioneDatabase.getInstance();
 

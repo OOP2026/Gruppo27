@@ -20,13 +20,13 @@ public class StanzaPostgresDao implements StanzaDAO {
         List<Stanza> stanze = new ArrayList<>();
         String sql = "SELECT numero FROM stanze WHERE reparto_num = ?";
         Connection conn = ConnessioneDatabase.getInstance();
+        LettoDAO lettoDao = new LettoPostgresDao();
 
         try (PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setInt(1, repartoNum);
 
             try (ResultSet rs = stmt.executeQuery()) {
                 while (rs.next()) {
-                    LettoDAO lettoDao = new LettoPostgresDao();
                     int numeroStanza = rs.getInt("numero");
                     Stanza stanza = new Stanza(numeroStanza);
 
