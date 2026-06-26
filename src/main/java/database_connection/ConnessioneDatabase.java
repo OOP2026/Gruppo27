@@ -5,21 +5,34 @@ import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
+/**
+ * Classe di gestione della connessione al database PostgreSQL (ospitato su Supabase).
+ * Implementa il pattern Singleton per garantire la presenza di un'unica connessione attiva
+ * globale in tutto il ciclo di vita dell'applicazione, ottimizzando il riuso delle risorse.
+ */
 public class ConnessioneDatabase {
 
     private static Connection connection = null;
 
     private static final Logger LOGGER = Logger.getLogger(ConnessioneDatabase.class.getName());
-    /*private static final String URL = "jdbc:postgresql://db.nyvvdoqwgsxhjwqtgafi.supabase.co:5432/postgres";
-    private static final String USER = "postgres";*/
     private static final String URL = "jdbc:postgresql://aws-0-eu-west-1.pooler.supabase.com:6543/postgres?prepareThreshold=0";
     private static final String USER = "postgres.nyvvdoqwgsxhjwqtgafi";
     private static final String PASSWORD = System.getenv("DB_PASSWORD");
-
+    /**
+     * Costruttore privato per impedire l'istanziazione diretta della classe dall'esterno.
+     * Garantisce l'integrità del pattern Singleton.
+     */
     private ConnessioneDatabase() {
     }
 
+    /**
+     * Restituisce l'istanza corrente della connessione al database.
+     * Se la connessione non esiste, è stata chiusa o non è più valida (timeout di 3 secondi),
+     * provvede a inizializzarne una nuova leggendo la password dalle variabili d'ambiente.
+     *
+     * @return l'oggetto {@link Connection} attivo e pronto all'uso, oppure null se la variabile
+     * d'ambiente 'DB_PASSWORD' manca o si verifica un errore SQL critico
+     */
     public static Connection getInstance() {
         try {
             if (connection == null || connection.isClosed()|| !connection.isValid(3)) {

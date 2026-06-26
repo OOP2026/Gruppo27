@@ -8,7 +8,10 @@ import java.time.LocalTime;
 import java.time.ZoneId;
 import java.util.Date;
 import com.toedter.calendar.JDateChooser;
-
+/**
+ * Finestra di dialogo modale utilizzata dai medici per registrare una prestazione sanitaria effettuata.
+ * Include campi per l'esito diagnostico, dettagli della prestazione e la selezione ad intervalli dell'orario.
+ */
 public class RegistraPrestazione extends JDialog {
     private JTextArea descrizionePrestazione;
     private JButton salvaButton;
@@ -20,7 +23,11 @@ public class RegistraPrestazione extends JDialog {
     private JTextField ssnField;
     private JDateChooser dateChooserPrestazione;
     private JComboBox<String> oraBox;
-
+    /**
+     * Costruisce la finestra modale, inizializza le componenti orarie ed imposta le dimensions della form.
+     *
+     * @param parent il frame principale di riferimento
+     */
     public RegistraPrestazione(JFrame parent) {
         super(parent,"Registra Prestazione",true);
         setContentPane(mainPrestazione);
@@ -31,15 +38,22 @@ public class RegistraPrestazione extends JDialog {
         setSize(550, 480);
         setLocationRelativeTo(parent);
     }
-
+    /**
+     * Genera la barra di selezione temporale combinando il calendario e la casella oraria a intervalli regolari.
+     * <p>
+     * Instanzia un {@link JDateChooser} impostando la data odierna come predefinita.
+     * Successivamente, genera programmaticamente una lista di stringhe tramite un ciclo {@code for} che scansiona la fascia
+     * diurna dalle 08:00 alle 20:00, inserendo intervalli regolari di 5 minuti (es. "08:00", "08:05", "08:10"). Mappa le stringhe
+     * in un {@link DefaultComboBoxModel} assegnandolo alla ComboBox {@code oraBox}. Infine, imposta i tipi di prestazione
+     * ammessi ("VISITA", "INTERVENTO_CHIRURGICO") all'interno di {@code tipoPrestazioneBox}.
+     * </p>
+     */
     private void inizializzaDataOra() {
-        //Inizializziamo il JDateChooser
         dateChooserPrestazione = new JDateChooser();
         dateChooserPrestazione.setDateFormatString("dd/MM/yyyy");
         dateChooserPrestazione.setDate(new Date()); // Imposta la data di oggi di default
         dataOraPanel.setLayout(new BorderLayout(5, 0));
         dataOraPanel.add(dateChooserPrestazione, BorderLayout.CENTER);
-        //JComboBox per l'ora e i minuti intermedi
         oraBox = new JComboBox<>();
         java.util.List<String> orari = new java.util.ArrayList<>();
         for (int ora = 8; ora < 20; ora++) {
@@ -57,15 +71,18 @@ public class RegistraPrestazione extends JDialog {
             orari.add(String.format("%02d:55", ora));
         }
         oraBox.setModel(new DefaultComboBoxModel<>(orari.toArray(new String[0])));
-        // Aggiungiamo la combo-box dell'ora a destra del calendario
         dataOraPanel.add(oraBox, BorderLayout.EAST);
-        //Popoliamo la combo box del tipo prestazione
         if (tipoPrestazioneBox != null) {
             tipoPrestazioneBox.setModel(new DefaultComboBoxModel<>(new String[]{"VISITA", "INTERVENTO_CHIRURGICO"}));
         }
     }
 
-    // Prende la Date del JDateChooser e le stringhe della JComboBox e sputa fuori un LocalDateTime
+    /**
+     * Combina la selezione del calendario JDateChooser con l'orario scelto nella casella combinata
+     * per strutturare e restituire un unico oggetto LocalDateTime unificato.
+     *
+     * @return il {@link LocalDateTime} risultante dagli input della form, o null se la data è assente
+     */
     public LocalDateTime getLocalDateTimeInput() {
         Date dateSelezionata = dateChooserPrestazione.getDate();
         if (dateSelezionata == null) return null;
@@ -78,10 +95,41 @@ public class RegistraPrestazione extends JDialog {
         // Uniamo tutto nel LocalDateTime richiesto dal tuo controller
         return LocalDateTime.of(dataLocal, LocalTime.of(ora, minuti));
     }
+
+    /**
+     * Restituisce il pulsante salva.
+     *
+     * @return il componente JButton salva
+     */
     public JButton getSalvaButton() {return  salvaButton;}
+    /**
+     * Restituisce il pulsante annulla.
+     *
+     * @return il componente JButton annulla
+     */
     public JButton getAnnullaButton() {return annullaButton;}
+    /**
+     * Restituisce il tipo di atto medico selezionato nella casella a discesa (es. VISITA).
+     *
+     * @return la stringa della prestazione selezionata
+     */
     public String getTipoSelezionato() { return (String) tipoPrestazioneBox.getSelectedItem(); }
+    /**
+     * Estrae il referto o l'esito inserito dal medico nell'area di testo.
+     *
+     * @return la stringa dell'esito diagnostico ripulita da spazi bianchi
+     */
     public String getEsitoInput() { return EsitoPrestazione.getText().trim(); }
+    /**
+     * Estrae la descrizione generale dell'intervento o della visita medica.
+     *
+     * @return la stringa descrittiva della prestazione ripulita da spazi bianchi
+     */
     public String getDescrizioneInput() { return descrizionePrestazione.getText().trim(); }
+    /**
+     * Recupera il codice fiscale (SSN) del paziente su cui viene erogata la prestazione.
+     *
+     * @return la stringa dell'SSN del paziente o null se il campo è assente
+     */
     public String getSsnPaziente() { return ssnField != null ? ssnField.getText().trim() : null; }
 }

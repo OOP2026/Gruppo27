@@ -27,6 +27,14 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+/**
+ * Controller dedicato alla gestione delle funzionalità a disposizione del Medico.
+ * <p>
+ * Coordina la visualizzazione dell'agenda giornaliera e settimanale delle prestazioni sanitarie,
+ * controlla la validità della pianificazione in base ai turni lavorativi e permette
+ * l'inserimento e la modifica dei referti clinici.
+ * </p>
+ */
 public class MedicoController {
     private static final Logger LOGGER = Logger.getLogger(MedicoController.class.getName());
 
@@ -45,6 +53,14 @@ public class MedicoController {
     private final DateTimeFormatter oraFormatter = DateTimeFormatter.ofPattern("HH:mm");
     private final DateTimeFormatter dataOraFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
 
+    /**
+     * Costruisce il controller caricando i turni del medico dal DB, recuperando le sue prestazioni
+     * e inizializzando le griglie temporali grafiche.
+     *
+     * @param view      l'interfaccia grafica dedicata al medico
+     * @param model     l'istanza del modello rappresentante il medico autenticato
+     * @param mainFrame la finestra principale dell'applicazione
+     */
     public MedicoController(InterfacciaMedico view, Medico model, JFrame mainFrame) {
         this.view = view;
         this.model = model;
@@ -64,7 +80,17 @@ public class MedicoController {
         caricaAgendaSettimanale();
         inizializzaAzioni();
     }
-
+    /**
+     * Configura la struttura dati dei modelli tabellari e installa un cell renderer personalizzato per l'evidenziazione cromatica.
+     * <p>
+     * Inizializza i modelli disattivando la modifica in-line delle celle. Crea un'estensione
+     * di {@link DefaultTableCellRenderer} sovrascrivendo la logica di disegno: calcola l'ora dello slot sommando l'indice di riga
+     * alla costante di base (ore 8:00) e determina il LocalDateTime preciso associato alla cella (giornaliero o settimanale calcolando
+     * l'offset del Lunedì tramite {@link TemporalAdjusters#previousOrSame(DayOfWeek)}). Invia questo timestamp al metodo del modello
+     * {@code model.isPrestazioneValid(slotOrario)}: se il medico risulta in turno, tinge lo sfondo di verde chiaro, altrimenti
+     * lo resetta a bianco, applicando infine l'algoritmo a tutte le colonne tramite un ciclo condizionale.
+     * </p>
+     */
     private void inizializzaTabelle() {
         //Configurazione Tabella Giornaliera
         String[] colonneGiornaliera = {"Orario", "Prestazione"};
@@ -131,18 +157,25 @@ public class MedicoController {
             view.getAgendaSettimanale().getColumnModel().getColumn(i).setCellRenderer(agendeRenderer);
         }
     }
-
+    /**
+     * Svuota e ripopola l'agenda giornaliera indicando le prestazioni associate a ciascuno slot orario.
+     * <p>
+     * Formatta il titolo della data inserendovi le maiuscole necessarie. Azzera il modello tabellare
+     * tramite {@code setRowCount(0)} ed avvia un ciclo orario fisso dalle ore 8:00 alle 20:00. Un ciclo interno scansiona le prestazioni
+     * caricate in memoria locale: se riscontra una corrispondenza esatta di giorno e ora, ne concatena la descrizione testuale nella cella
+     * separandola con un carattere "+", inserendo infine la riga nel modello.
+     * </p>
+     */
     private void caricaAgendaGiornaliera() {
-        // 1. Aggiorna la data in alto (es: "Agenda del giorno: Lunedì 25 Maggio 2026")
+        //Aggiorna la data in alto (es: "Agenda del giorno: Lunedì 25 Maggio 2026")
         if (view.getLabelGiornaliera() != null) {
             DateTimeFormatter formatoDataTitolo = DateTimeFormatter.ofPattern("EEEE dd MMMM yyyy", java.util.Locale.ITALIAN);
             String dataFormattata = datagiornaliera.format(formatoDataTitolo);
-            // Mette la prima lettera in maiuscolo (es: lunedì -> Lunedì)
+            // Mette la prima lettera in maiuscolo
             String titolo = dataFormattata.substring(0, 1).toUpperCase() + dataFormattata.substring(1);
             ((JLabel) view.getLabelGiornaliera()).setText("Agenda del giorno: " + titolo);
         }
-
-        // 2. Svuota e ricarica i dati della tabella
+        //Svuota e ricarica i dati della tabella
         modelGiornaliero.setRowCount(0);
         for (int ora = 8; ora <= 20; ora++) {
             String orarioStr = String.format("%02d:00", ora);
@@ -157,7 +190,14 @@ public class MedicoController {
             modelGiornaliero.addRow(new Object[]{orarioStr, contenutoCella});
         }
     }
-
+    /**
+     * Rigenera i dati dell'agenda della settimana distribuendo le prestazioni sulle colonne corrispondenti ai giorni (Lunedì-Domenica).
+     * <p>
+     * Calcola i confini della settimana corrente e aggiorna la label. Svuota la tabella e, per ogni
+     * ora dell'intervallo, predispone un array di 8 oggetti (colonna 0 per l'orario testuale, colonne 1-7 per i giorni). Un ciclo nidificato
+     * calcola la data esatta del giorno della colonna sommandovi l'indice e vi aggrega le prestazioni corrispondenti per ora e giorno.
+     * </p>
+     */
     private void caricaAgendaSettimanale() {
         LocalDate lunedi = datagiornaliera.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
         LocalDate domenica = lunedi.plusDays(6);
@@ -187,10 +227,18 @@ public class MedicoController {
             modelSettimanale.addRow(riga);
         }
     }
-
+    /**
+     * Associa i gestori di eventi per la navigazione temporale, il logout e i click interattivi sulle tabelle.
+     * <p>
+     * Registra un unico blocco d'azione riutilizzabile {@code aggiungerePrestazioneAzione} che istanzia
+     * la form modale {@link RegistraPrestazione}. Al click su salva, valida la presenza dell'orario, verifica che il medico sia effettivamente
+     * in servizio tramite la barriera logica {@code model.isPrestazioneValid(orarioScelto)}, mappa la selezione sull'Enum, aggiorna il DB
+     * e rinfresca le tabelle. Installa inoltre dei {@link MouseAdapter} sulle griglie Swing per intercettare i doppi click coordinando
+     * l'estrazione delle prestazioni associate alla riga e colonna selezionate.
+     * </p>
+     */
     private void inizializzaAzioni() {
         JFrame parentFrame = (JFrame) SwingUtilities.getWindowAncestor(view.getPanelMedico());
-
         //GESTIONE DEL BOTTONE LOGOUT
         if (view.getLogoutButton() != null) {
             view.getLogoutButton().addActionListener(e -> gestisciLogout());
@@ -198,12 +246,10 @@ public class MedicoController {
 
         //DEFINIZIONE DELL'AZIONE PER AGGIUNGERE LE PRESTAZIONI CON LA NUOVA INTERFACCIA DIALOG
         java.awt.event.ActionListener aggiungerePrestazioneAzione = e -> {
-            // Creiamo un'istanza della tua nuova finestra di dialogo passandogli il frame principale
+            // Creiamo un'istanza della nuova finestra di dialogo passandogli il frame principale
             gui.RegistraPrestazione dialog = new gui.RegistraPrestazione(parentFrame);
-
             // Azione per il tasto ANNULLA della JDialog
             dialog.getAnnullaButton().addActionListener(evt -> dialog.dispose());
-
             // Azione per il tasto SALVA della JDialog
             dialog.getSalvaButton().addActionListener(evt -> {
                 try {
@@ -318,7 +364,15 @@ public class MedicoController {
             }
         });
     }
-
+    /**
+     * Coordina lo spacchettamento delle prestazioni presenti in uno slot, gestendo gli eventi di contemporaneità oraria.
+     * <p>
+     * Se la lista filtrata è vuota lancia un messaggio informativo. Se contiene un unico elemento
+     * apre direttamente la scheda. Qualora vi siano più prestazioni registrate nello stesso intervallo, compone un array di opzioni testuali
+     * e richiama un menu a tendina interattivo tramite {@link JOptionPane#showInputDialog}: l'elemento selezionato viene isolato e inoltrato
+     * al visualizzatore di dettagli.
+     * </p>
+     */
     private void gestisciSelezioneEMostraDettagli(JFrame parentFrame, List<PrestazioneMedica> filtrate) {
         if (filtrate.isEmpty()) {
             JOptionPane.showMessageDialog(parentFrame, "Nessuna prestazione registrata in questo slot orario.", "Slot Vuoto", JOptionPane.INFORMATION_MESSAGE);
@@ -349,7 +403,15 @@ public class MedicoController {
             }
         }
     }
-
+    /**
+     * Mostra i dettagli clinici dell'atto e abilita l'interfaccia guidata per la sovrascrittura o la stesura del referto medico.
+     * <p>
+     * Compone la stringa informativa e la proietta mediante un {@link JOptionPane#showOptionDialog}.
+     * Se l'operatore clicca sulla seconda opzione ("Modifica Esito"), apre una finestra di input testuale. Previa convalida sulla
+     * presenza di testo, aggiorna l'esito sull'oggetto modello, richiede l'esecuzione del comando di aggiornamento sul database
+     * tramite il rispettivo DAO e forza il ripopolamento grafico delle agende.
+     * </p>
+     */
     private void mostraSchedaDettagli(JFrame frame, PrestazioneMedica p) {
         String ssnInfo = (p.getSsnPaziente() == null || p.getSsnPaziente().isBlank())
                 ? "Non specificato" : p.getSsnPaziente();
@@ -395,12 +457,17 @@ public class MedicoController {
             }
         }
     }
-
+    /**
+     * Interroga lo strato DAO per ricavare i turni di lavoro pianificati per il medico e li carica in memoria. 
+     */
     private void caricaTurniDelMedico() {
         for (TurnoLavorativo turno : turnoLavorativoDAO.findByMedico(model.getLogin())) {
             model.aggiungiTurno(turno);
         }
     }
+    /**
+     * Gestisce il logout del medico previa conferma, distruggendo la dashboard e rimandando al login.
+     */
     private void gestisciLogout() {
         int conferma = JOptionPane.showConfirmDialog(
                 mainFrame,
