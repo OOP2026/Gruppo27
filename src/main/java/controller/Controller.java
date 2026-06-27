@@ -4,14 +4,18 @@ import dao.UtenteDAO;
 import gui.InterfacciaAmministratore;
 import gui.InterfacciaMedico;
 import gui.Login;
+import gui.SchermataCaricamento;
 import implementazioneDao.UtentePostgresDao;
 import model.Amministratore;
 import model.Medico;
 import model.Utente;
 
 import javax.swing.*;
-import java.awt.Frame; // Aggiunto import per risolvere l'avviso di MAXIMIZED_BOTH
+import java.awt.Frame;
 import java.util.Optional;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
 /**
  * Controller generico di accesso, coordinamento e instradamento principale dell'applicazione.
  * <p>
@@ -21,6 +25,7 @@ import java.util.Optional;
  * </p>
  */
 public class Controller {
+	private static final Logger LOGGER = Logger.getLogger(Controller.class.getName());
 	private Login view;
 	private JFrame mainFrame;
 	private final UtenteDAO utenteDAO;
@@ -58,22 +63,72 @@ public class Controller {
 				}
 			}
 		});
-
 	}
+
 	/**
-	 * Raccoglie le credenziali inserite dall'utente nella GUI, interroga il servizio di autenticazione
+	 * Raccoglie le credenziali inserite dall'utente nella GUI, avvia un thread separato (SwingWorker)
+	 * per interrogare il servizio di autenticazione in cloud mostrando una schermata di caricamento,
 	 * e procede con l'instradamento o mostra un messaggio di errore.
 	 */
 	private void gestisciLogin() {
 		String u = view.getUsername();
 		String p = view.getPassword();
-		Utente utenteLoggato = autentica(u, p);
-
-		if (utenteLoggato != null) {
-			instradaUtente(utenteLoggato);
-		} else {
-			JOptionPane.showMessageDialog(mainFrame, "Credenziali errate.", "Errore Login", JOptionPane.ERROR_MESSAGE);
+		if (u.isEmpty() || p.isEmpty()) {
+			JOptionPane.showMessageDialog(mainFrame, "Inserisci username e password.", "Errore", JOptionPane.WARNING_MESSAGE);
+			return;
 		}
+		SchermataCaricamento loadingScreen = new SchermataCaricamento(mainFrame);
+		SwingWorker<Utente, Void> worker = new SwingWorker<Utente, Void>() {
+
+			@Override
+			protected Utente doInBackground() throws Exception {
+				return autentica(u, p);
+			}
+
+			@Override
+			protected void done() {
+				try {
+					Utente utenteLoggato = get();
+
+					if (utenteLoggato != null) {
+						String identificativo;
+						if (utenteLoggato instanceof Medico medico) {
+							identificativo = medico.getNome() + " " + medico.getCognome();
+						} else {
+							identificativo = utenteLoggato.getLogin();
+						}
+						loadingScreen.mostraBenvenuto(identificativo);
+						loadingScreen.setMessaggio("Preparazione Dashboard in corso...");
+						loadingScreen.nascondiBarra();
+						Timer timer = new Timer(1500, e -> {
+							instradaUtente(utenteLoggato);
+							loadingScreen.dispose();
+						});
+						timer.setRepeats(false);
+						timer.start();
+
+					} else {
+						loadingScreen.dispose();
+						JOptionPane.showMessageDialog(mainFrame, "Credenziali errate.", "Errore Login", JOptionPane.ERROR_MESSAGE);
+					}
+				} catch (InterruptedException ie) {
+					loadingScreen.dispose();
+					Thread.currentThread().interrupt(); // Best practice: ri-interruzione
+					LOGGER.log(Level.SEVERE, "L'operazione di login è stata interrotta.", ie);
+				} catch (java.util.concurrent.ExecutionException ee) {
+					loadingScreen.dispose();
+					LOGGER.log(Level.SEVERE, "Errore di esecuzione durante il login.", ee);
+					JOptionPane.showMessageDialog(mainFrame, "Errore di connessione al database.\nRiprova più tardi.", "Errore Server", JOptionPane.ERROR_MESSAGE);
+				} catch (Exception ex) {
+					loadingScreen.dispose();
+					LOGGER.log(Level.SEVERE, "Si è verificato un errore imprevisto.", ex);
+					JOptionPane.showMessageDialog(mainFrame, "Errore imprevisto durante l'accesso.", "Errore", JOptionPane.ERROR_MESSAGE);
+				}
+			}
+		};
+
+		worker.execute();
+		loadingScreen.setVisible(true);
 	}
 	/**
 	 * Verifica la validità delle credenziali fornite interrogando lo strato di persistenza dei dati.
@@ -91,20 +146,10 @@ public class Controller {
 
 		return null;
 	}
+
 	/**
 	 * Analizza il tipo specifico di ruolo dell'utente autenticato per istanziare il rispettivo
 	 * sottocontrollore logico dedicato e la relativa interfaccia grafica.
-	 * <p>
-	 * Utilizza l'operatore di controllo dei tipi {@code instanceof} per determinare
-	 * se l'utente loggato sia un medico o un amministratore:
-	 * <ul>
-	 * <li>Se l'utente è un'istanza di **Medico**, sfrutta il pattern matching per effettuare il cast automatico,
-	 * istanzia la GUI {@link InterfacciaMedico}, ne crea il controllore dedicato {@link MedicoController} e richiede
-	 * il cambio di schermata impostando il titolo personalizzato con il cognome del professionista.</li>
-	 * <li>Se l'utente è un'istanza di **Amministratore**, istanzia la GUI {@link InterfacciaAmministratore},
-	 * inizializza il rispettivo controllore di business {@link AdminController} e ordina la sostituzione del pannello grafico.</li>
-	 * </ul>
-	 * </p>
 	 *
 	 * @param utente l'utente loggato da instradare
 	 */
@@ -112,19 +157,16 @@ public class Controller {
 
 		if (utente instanceof Medico medico) {
 			InterfacciaMedico gui = new InterfacciaMedico();
-
 			new MedicoController(gui, medico, mainFrame);
-
 			cambiaSchermata(gui.getPanelMedico(), "Dashboard Medico - " + medico.getCognome());
 
 		} else if (utente instanceof Amministratore amministratore) {
 			InterfacciaAmministratore gui = new InterfacciaAmministratore();
-
 			new AdminController(gui, amministratore, mainFrame);
-
 			cambiaSchermata(gui.getPanelAmministratore(), "Dashboard Amministratore");
 		}
 	}
+
 	/**
 	 * Aggiorna il contenitore principale dell'applicazione inserendo il nuovo pannello,
 	 * massimizzando la finestra a tutto schermo.
