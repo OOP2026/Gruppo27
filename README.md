@@ -34,7 +34,7 @@ Per approfondire i risultati dell'analisi architetturale bisogna andare in Actio
 - **Amministratore:**
 - Username `admTramontana` | Password `pass`
 - Username `admGada` | Password `pass`
-- 
+  
 - **Medico:**
 - Username `drTramontana` | Password `pass`
 - Username `drGiordano` | Password `pass`
