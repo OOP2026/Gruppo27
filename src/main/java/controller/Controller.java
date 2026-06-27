@@ -93,7 +93,7 @@ public class Controller {
 					if (utenteLoggato != null) {
 						String identificativo;
 						if (utenteLoggato instanceof Medico medico) {
-							identificativo = medico.getNome() + " " + medico.getCognome();
+							identificativo = "Dr."+ medico.getNome() + " " + medico.getCognome();
 						} else {
 							identificativo = utenteLoggato.getLogin();
 						}
