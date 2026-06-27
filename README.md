@@ -31,5 +31,10 @@ Per approfondire i risultati dell'analisi architetturale bisogna andare in Actio
 - **Valore:** `ProgettoOOPGruppo27`
 
 ### Credenziali di Test per l'Accesso:
-- **Amministratore:** Username `admin` | Password `pass`
-- **Medico:** Username `medico` | Password `pass`
+- **Amministratore:**
+- Username `admTramontana` | Password `pass`
+- Username `admGada` | Password `pass`
+- 
+- **Medico:**
+- Username `drTramontana` | Password `pass`
+- Username `drGiordano` | Password `pass`
