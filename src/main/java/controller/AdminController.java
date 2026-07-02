@@ -952,7 +952,15 @@ public class AdminController {
                 annoStr = String.valueOf(cal.get(Calendar.YEAR));
             }
 
-            String stato      = ricovero.isInCorso() ? "In Corso" : "Dimesso";
+            Date oggiStato = new Date();
+            String stato;
+            if (!ricovero.isInCorso()) {
+                stato = "Dimesso";
+            } else if (oggiStato.before(ricovero.getDataRicovero())) {
+                stato = "Programmato";
+            } else {
+                stato = "In Corso";
+            }
             String dataEntrata = formatData(ricovero.getDataRicovero());
             String dataUscita;
             if (ricovero.isInCorso()) {
