@@ -982,7 +982,7 @@ public class AdminController {
 
                 tableModelDimissioni.addRow(new Object[]{
                         ricovero.getSsn(), nomeCognome[0], nomeCognome[1],
-                        nomeReparto, infoLetto, medicoAssegnato, dataUscita
+                        nomeReparto, infoLetto, medicoAssegnato, formatData(ricovero.getDataDimissionePrevista())
                 });
             }
         }
