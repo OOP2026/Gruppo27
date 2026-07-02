@@ -168,6 +168,14 @@ public class AdminController {
         if (cmbReparti != null && listaReparti != null) {
             listaReparti.forEach(cmbReparti::addItem);
             cmbReparti.addActionListener(e -> aggiornaMappaCorrente());
+            JTextField txtRicerca = gestioneLettiView.getTxtRicercaLetto();
+            if (txtRicerca != null) {
+                txtRicerca.getDocument().addDocumentListener(new javax.swing.event.DocumentListener() {
+                    @Override public void insertUpdate(javax.swing.event.DocumentEvent e) { filtraLetti(); }
+                    @Override public void removeUpdate(javax.swing.event.DocumentEvent e) { filtraLetti(); }
+                    @Override public void changedUpdate(javax.swing.event.DocumentEvent e) { filtraLetti(); }
+                });
+            }
         }
 
         if (!listaReparti.isEmpty()) {
@@ -755,6 +763,41 @@ public class AdminController {
         if (selected instanceof Reparto) {
             disegnaMappaLetti((Reparto) selected);
         }
+
+    }
+    private void filtraLetti() {
+        Object selected = gestioneLettiView.getCmbReparti().getSelectedItem();
+        if (!(selected instanceof Reparto)) return;
+
+        String filtro = gestioneLettiView.getTxtRicercaLetto().getText().trim().toLowerCase();
+        Reparto reparto = (Reparto) selected;
+
+        JPanel mappa = gestioneLettiView.getPanelMappaLetti();
+        mappa.removeAll();
+
+        if (reparto.getStanze() != null) {
+            for (Stanza stanza : reparto.getStanze()) {
+                List<Letto> letti = stanza.getLetti();
+                if (letti == null) continue;
+
+                List<Letto> lettiFiltrati = filtro.isEmpty()
+                        ? letti
+                        : letti.stream()
+                        .filter(l -> l.getCodiceInventario().toLowerCase().contains(filtro))
+                        .collect(java.util.stream.Collectors.toList());
+
+                if (lettiFiltrati.isEmpty()) continue;
+
+                JPanel panelStanza = new JPanel(new FlowLayout(FlowLayout.LEFT, 15, 15));
+                panelStanza.setBorder(BorderFactory.createTitledBorder("Stanza " + stanza.getNumero()));
+                panelStanza.setAlignmentX(Component.LEFT_ALIGNMENT);
+                lettiFiltrati.forEach(letto -> panelStanza.add(creaLabelLetto(letto)));
+                mappa.add(panelStanza);
+            }
+        }
+
+        mappa.revalidate();
+        mappa.repaint();
     }
     /**
      * Rigenera dinamicamente i componenti grafici rappresentanti le stanze e i rispettivi letti del reparto.
